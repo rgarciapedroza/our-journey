@@ -3,6 +3,9 @@ package com.ourjourney.backend.service.impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
@@ -43,6 +46,24 @@ public class UserServiceImpl implements UserService {
         response.setName(savedUser.getName());
         response.setEmail(savedUser.getEmail());
         response.setProfilePicture(savedUser.getProfilePicture());
+
+        return response;
+    }
+
+    @Override
+    public  UserResponse login(LoginRequest request){
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setProfilePicture(user.getProfilePicture());
 
         return response;
     }
