@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,10 @@ import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.impl.UserServiceImpl;
 
+import org.mockito.junit.jupiter.MockitoExtension;
+
+
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
