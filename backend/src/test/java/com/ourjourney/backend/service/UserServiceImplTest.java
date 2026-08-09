@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
@@ -41,6 +44,13 @@ class UserServiceImplTest {
         request.setEmail("rosmary@gmail.com");
         request.setPassword("password123");
         request.setConfirmPassword("password123");
+        return request;
+    }
+
+    private LoginRequest createValidLoginRequest() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("rosmary@gmail.com");
+        request.setPassword("password123");
         return request;
     }
 
@@ -107,5 +117,71 @@ class UserServiceImplTest {
         );
 
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    //Login Tests
+
+    @Test
+    void shouldLoginUserSuccessfully() {
+        LoginRequest request = createValidLoginRequest();
+
+        User user = User.builder()
+                .id(1L)
+                .name("Rosmary")
+                .email(request.getEmail())
+                .password("encodedPassword")
+                .build();
+
+        when(userRepository.findByEmail(request.getEmail()))
+                .thenReturn(java.util.Optional.of(user));
+
+        when(passwordEncoder.matches(request.getPassword(), user.getPassword()))
+                .thenReturn(true);
+
+        UserResponse response = userService.login(request);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("Rosmary", response.getName());
+        assertEquals("rosmary@gmail.com", response.getEmail());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserDoesNotExist() {
+        LoginRequest request = createValidLoginRequest();
+
+        when(userRepository.findByEmail(request.getEmail()))
+                .thenReturn(java.util.Optional.empty());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.login(request)
+        );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPasswordIsIncorrect() {
+
+        LoginRequest request = createValidLoginRequest();
+
+        User user = User.builder()
+                .id(1L)
+                .name("Rosmary")
+                .email(request.getEmail())
+                .password("encodedPassword")
+                .build();
+
+        when(userRepository.findByEmail(request.getEmail()))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )).thenReturn(false);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.login(request)
+        );
     }
 }
