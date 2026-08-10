@@ -4,8 +4,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ourjourney.backend.dto.LoginRequest;
-import com.ourjourney.backend.dto.LoginRequest;
-import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
