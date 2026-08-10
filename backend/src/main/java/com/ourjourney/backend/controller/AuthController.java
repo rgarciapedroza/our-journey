@@ -12,6 +12,7 @@ import com.ourjourney.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 
@@ -31,5 +32,11 @@ public class AuthController {
         return ResponseEntity
                  .status(HttpStatus.CREATED)
                  .body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
+        
+        return ResponseEntity.ok(userService.login(request));
     }
 }
