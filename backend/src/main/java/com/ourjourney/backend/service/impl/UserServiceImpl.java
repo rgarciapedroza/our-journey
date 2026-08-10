@@ -68,4 +68,19 @@ public class UserServiceImpl implements UserService {
 
         return response;
     }
+
+    @Override
+    public UserResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setProfilePicture(user.getProfilePicture());
+
+        return response;
+    }
 }
