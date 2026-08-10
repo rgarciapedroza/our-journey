@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,11 +19,15 @@ import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
+import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.UserService;
 
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(AuthController.class)
+@TestPropertySource(properties = {
+    "jwt.secret=test-secret-key-for-jwt-authentication-tests-123456789"
+})
 class AuthControllerTest {
     
     @Autowired
@@ -33,6 +38,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     private RegisterRequest createValidRegisterRequest() {
         RegisterRequest request = new RegisterRequest();

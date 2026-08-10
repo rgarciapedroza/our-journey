@@ -36,6 +36,9 @@ class UserServiceImplTest {
     @Mock 
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private JwtService jwtService;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -138,6 +141,9 @@ class UserServiceImplTest {
 
         when(passwordEncoder.matches(request.getPassword(), user.getPassword()))
                 .thenReturn(true);
+
+        when(jwtService.generateToken(user.getEmail()))
+        .thenReturn("test-jwt-token");
 
         LoginResponse response = userService.login(request);
 
