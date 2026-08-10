@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.service.UserService;
@@ -40,6 +41,16 @@ class AuthControllerTest {
         request.setConfirmPassword("password123");
         return request;
     }
+
+    private LoginRequest createValidLoginRequest() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("rosmary@gmail.com");
+        request.setPassword("password123");
+        return request;
+    }
+
+
+    //Resgister Tests
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
@@ -108,13 +119,66 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
+    void shouldReturnBadRequestWhenEmailIsInvalidDuringRegister() throws Exception {
 
         RegisterRequest request = createValidRegisterRequest();
         request.setEmail("not-an-email");
 
         mockMvc.perform(
                 post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        )
+        .andExpect(status().isBadRequest());
+    }
+
+    //Login Tests
+
+    @Test
+    void shouldLoginSuccessfully() throws Exception {
+        LoginRequest request = createValidLoginRequest();
+
+        UserResponse response = new UserResponse();
+        response.setId(1L);
+        response.setName("Rosmary");
+        response.setEmail(request.getEmail());
+        response.setProfilePicture(null);
+
+        when(userService.login(any(LoginRequest.class))).thenReturn(response);
+
+         mockMvc.perform(
+                post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        )
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.name").value("Rosmary"))
+        .andExpect(jsonPath("$.email").value("rosmary@gmail.com"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenEmailIsInvalidDuringLogin() throws Exception {
+        LoginRequest request = createValidLoginRequest();
+        request.setEmail("not-an-email");
+
+        mockMvc.perform(
+                post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        )
+        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenLoginPasswordIsBlank() throws Exception {
+
+        LoginRequest request = createValidLoginRequest();
+        request.setPassword("");
+
+        mockMvc.perform(
+                post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         )
