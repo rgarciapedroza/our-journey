@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.service.UserService;
@@ -138,7 +139,7 @@ class AuthControllerTest {
     void shouldLoginSuccessfully() throws Exception {
         LoginRequest request = createValidLoginRequest();
 
-        UserResponse response = new UserResponse();
+        LoginResponse response = new LoginResponse();
         response.setId(1L);
         response.setName("Rosmary");
         response.setEmail(request.getEmail());

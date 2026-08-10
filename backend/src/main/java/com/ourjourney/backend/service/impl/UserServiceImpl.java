@@ -4,10 +4,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
+import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ public class UserServiceImpl implements UserService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    
+    private final JwtService jwtService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -49,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public  UserResponse login(LoginRequest request){
+    public  LoginResponse login(LoginRequest request){
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
@@ -57,11 +59,12 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        UserResponse response = new UserResponse();
+        LoginResponse response = new LoginResponse();
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setProfilePicture(user.getProfilePicture());
+        response.setToken(jwtService.generateToken(user.getEmail()));
 
         return response;
     }

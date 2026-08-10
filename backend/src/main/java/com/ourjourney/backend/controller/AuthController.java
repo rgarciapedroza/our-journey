@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 
@@ -35,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         
         return ResponseEntity.ok(userService.login(request));
     }
