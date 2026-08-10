@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.ourjourney.backend.dto.LoginRequest;
+import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
@@ -34,6 +35,9 @@ class UserServiceImplTest {
 
     @Mock 
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -138,7 +142,10 @@ class UserServiceImplTest {
         when(passwordEncoder.matches(request.getPassword(), user.getPassword()))
                 .thenReturn(true);
 
-        UserResponse response = userService.login(request);
+        when(jwtService.generateToken(user.getEmail()))
+        .thenReturn("test-jwt-token");
+
+        LoginResponse response = userService.login(request);
 
         assertNotNull(response);
         assertEquals(1L, response.getId());
