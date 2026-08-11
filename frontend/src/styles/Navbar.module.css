@@ -1,0 +1,169 @@
+.navbar {
+    background: white;
+    border-bottom: 1px solid #edf2f7;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+    max-width: 72rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+}
+
+/* Brand / Logo */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #2d3748;
+    transition: color 0.2s ease;
+}
+
+.brand:hover {
+    color: #ff8e92;
+}
+
+.brandIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: #ff8e92;
+}
+
+.brandText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Right Section */
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* User Info */
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #ff8e92 0%, #ff6b6b 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+}
+
+.userName {
+    color: #4a5568;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Logout Button */
+.logoutButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #fff5f5;
+    color: #ff6b6b;
+    border: 1px solid #fed7d7;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+    background: #ff8e92;
+    border-color: #ff8e92;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 142, 146, 0.3);
+}
+
+.logoutButton:active {
+    transform: translateY(0);
+}
+
+.logoutIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.logoutButton:hover .logoutIcon {
+    transform: translateX(2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 0.75rem;
+    }
+    
+    .container {
+        height: 3.5rem;
+    }
+    
+    .brandText {
+        font-size: 1.1rem;
+    }
+    
+    .userName {
+        display: none;
+    }
+    
+    .logoutButton {
+        padding: 0.5rem;
+    }
+    
+    .logoutButton span {
+        display: none;
+    }
+    
+    .logoutIcon {
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .brandIcon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    
+    .brandText {
+        font-size: 0.95rem;
+    }
+    
+    .avatar {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.75rem;
+    }
+}
