@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getTrip } from "../api/trips";
+import { deleteTrip } from "../api/trips";
 import type { Trip } from "../types/trip";
 import styles from "../styles/TripDetailPage.module.css";
 
 function TripDetailPage() {
     const { id } = useParams<{ id: string }>();
+
+    const [deleting, setDeleting] = useState(false);
+
+    const navigate = useNavigate();
+    const [showConfirm, setShowConfirm] = useState(false);
 
     const [trip, setTrip] = useState<Trip | null>(null);
     const [loading, setLoading] = useState(true);
@@ -66,6 +72,26 @@ function TripDetailPage() {
         );
     }
 
+    async function handleDelete() {
+        if (!showConfirm) {
+            setShowConfirm(true);
+            return;
+        }
+
+        setDeleting(true);
+        try {
+            if (!id) return;
+            await deleteTrip(Number(id));
+            navigate("/trips");
+        } catch (error) {
+            console.error(error);
+            setError("Could not delete the trip.");
+        } finally {
+            setDeleting(false);
+            setShowConfirm(false);
+        }
+    }
+
     return (
         <main className={styles.main}>
             <div className={styles.container}>
@@ -104,6 +130,41 @@ function TripDetailPage() {
                                 <span>{trip.destination}</span>
                             </div>
                         )}
+
+                        <div className={styles.tripActions}>
+                            <Link to={`/trips/${trip.id}/edit`} className={styles.editButton}>
+                                <svg className={styles.actionIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Trip
+                            </Link>
+                            
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className={`${styles.deleteButton} ${showConfirm ? styles.deleteButtonConfirm : ''}`}
+                            >
+                                {deleting ? (
+                                    <>
+                                        <svg className={styles.spinnerSmall} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className={styles.spinnerCircle} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className={styles.spinnerPath} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Deleting...
+                                    </>
+                                ) : showConfirm ? (
+                                    "Confirm Delete"
+                                ) : (
+                                    <>
+                                        <svg className={styles.actionIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete Trip
+                                    </>
+                                )}
+                            </button>
+                        </div>
 
                         <div className={styles.dates}>
                             <svg className={styles.dateIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

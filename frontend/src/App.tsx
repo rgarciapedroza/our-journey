@@ -6,6 +6,8 @@ import TripsPage from "./pages/TripsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import TripDetailPage from "./pages/TripDetailPage";
+import CreateTripPage from "./pages/CreateTripPage";
+import EditTripPage from "./pages/EditTripPage";
 
 function App() {
     return (
@@ -18,6 +20,8 @@ function App() {
                     <Route element={<Layout />}>
                         <Route path="/trips" element={<TripsPage />} />
                         <Route path="/trips/:id" element={<TripDetailPage />} />
+                        <Route path="/trips/new" element={<CreateTripPage />} />
+                        <Route path="/trips/:id/edit" element={<EditTripPage />} />
                     </Route>
                 </Route>
 
