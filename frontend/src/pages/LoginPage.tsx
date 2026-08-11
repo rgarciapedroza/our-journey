@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { login } from "../api/auth";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
@@ -7,6 +7,8 @@ function LoginPage() {
     const [password, setPassword] = useState("");
 
     const navigate = useNavigate();
+    const { login } = useAuth();
+    
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
