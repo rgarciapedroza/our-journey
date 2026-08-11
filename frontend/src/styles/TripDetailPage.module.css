@@ -33,6 +33,40 @@
     height: 1.25rem;
 }
 
+/* Edit Button */
+.tripActions {
+    display: flex;
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+}
+
+.editButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f7fafc;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.editButton:hover {
+    background: #edf2f7;
+    border-color: #ff8e92;
+    color: #ff8e92;
+    transform: translateY(-2px);
+}
+
+.editIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
 /* Loading State */
 .loadingContainer {
     display: flex;

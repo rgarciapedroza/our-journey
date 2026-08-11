@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getTrip } from "../api/trips";
 import type { Trip } from "../types/trip";
 import styles from "../styles/TripDetailPage.module.css";
@@ -7,6 +7,7 @@ import styles from "../styles/TripDetailPage.module.css";
 function TripDetailPage() {
     const { id } = useParams<{ id: string }>();
 
+    const navigate = useNavigate();
     const [trip, setTrip] = useState<Trip | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -104,6 +105,15 @@ function TripDetailPage() {
                                 <span>{trip.destination}</span>
                             </div>
                         )}
+
+                        <div className={styles.tripActions}>
+                            <Link to={`/trips/${trip.id}/edit`} className={styles.editButton}>
+                                <svg className={styles.editIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Trip
+                            </Link>
+                        </div>
 
                         <div className={styles.dates}>
                             <svg className={styles.dateIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
