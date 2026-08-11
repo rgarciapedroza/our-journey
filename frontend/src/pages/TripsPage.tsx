@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getTrips } from "../api/trips";
 import type { Trip } from "../types/trip";
 import styles from "../styles/TripsPage.module.css";
@@ -63,31 +64,20 @@ function TripsPage() {
                 ) : (
                     <div className={styles.grid}>
                         {trips.map((trip) => (
-                            <article key={trip.id} className={styles.card}>
-                                <div className={styles.cardHeader}>
-                                    <h2 className={styles.cardTitle}>{trip.name}</h2>
-                                    <span className={styles.destination}>{trip.destination}</span>
-                                </div>
+                            <article key={trip.id}>
+                                <h2>
+                                    <Link to={`/trips/${trip.id}`}>
+                                        {trip.name}
+                                    </Link>
+                                </h2>
 
-                                <p className={styles.description}>{trip.description}</p>
+                                <p>{trip.destination}</p>
 
-                                <div className={styles.cardFooter}>
-                                    <div className={styles.dateContainer}>
-                                        <svg className={styles.dateIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span className={styles.date}>
-                                            {trip.startDate} - {trip.endDate}
-                                        </span>
-                                    </div>
-                                    
-                                    <button className={styles.detailsButton}>
-                                        View Details
-                                        <svg className={styles.arrowIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                <p>{trip.description}</p>
+
+                                <p>
+                                    {trip.startDate} - {trip.endDate}
+                                </p>
                             </article>
                         ))}
                     </div>
