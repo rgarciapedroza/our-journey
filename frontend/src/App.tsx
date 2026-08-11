@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import TripsPage from "./pages/TripsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+import TripDetailPage from "./pages/TripDetailPage";
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>
                         <Route path="/trips" element={<TripsPage />} />
+                        <Route path="/trips/:id" element={<TripDetailPage />} />
                     </Route>
                 </Route>
 
