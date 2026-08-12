@@ -8,20 +8,35 @@ import org.springframework.stereotype.Service;
 import com.ourjourney.backend.dto.TripRequest;
 import com.ourjourney.backend.dto.TripResponse;
 import com.ourjourney.backend.entity.Trip;
+import com.ourjourney.backend.entity.TripMember;
+import com.ourjourney.backend.entity.TripMemberRole;
+import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.TripRepository;
+import com.ourjourney.backend.repository.TripMemberRepository;
+import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.TripService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class TripServiceImpl implements TripService{
-    
+public class TripServiceImpl implements TripService {
+
     private final TripRepository tripRepository;
+    private final TripMemberRepository tripMemberRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public TripResponse createTrip(TripRequest request){
-        
+    public TripResponse createTrip(
+            TripRequest request,
+            String currentUserEmail) {
+
+        User currentUser = userRepository
+                .findByEmail(currentUserEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"));
+
         Trip trip = Trip.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -35,16 +50,25 @@ public class TripServiceImpl implements TripService{
 
         Trip savedTrip = tripRepository.save(trip);
 
+        TripMember owner = TripMember.builder()
+                .trip(savedTrip)
+                .user(currentUser)
+                .role(TripMemberRole.OWNER)
+                .joinedAt(LocalDateTime.now())
+                .build();
+
+        tripMemberRepository.save(owner);
+
         return mapToResponse(savedTrip);
     }
 
     @Override
     public List<TripResponse> getAllTrips() {
+
         return tripRepository.findAll()
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
-
     }
 
     @Override
@@ -52,17 +76,21 @@ public class TripServiceImpl implements TripService{
 
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Trip not found"));
+                        new IllegalArgumentException(
+                                "Trip not found"));
 
         return mapToResponse(trip);
     }
 
     @Override
-    public TripResponse updateTrip(Long id, TripRequest request) {
+    public TripResponse updateTrip(
+            Long id,
+            TripRequest request) {
 
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Trip not found"));
+                        new IllegalArgumentException(
+                                "Trip not found"));
 
         trip.setName(request.getName());
         trip.setDescription(request.getDescription());
@@ -81,13 +109,15 @@ public class TripServiceImpl implements TripService{
     public void deleteTrip(Long id) {
 
         if (!tripRepository.existsById(id)) {
-            throw new IllegalArgumentException("Trip not found");
+            throw new IllegalArgumentException(
+                    "Trip not found");
         }
 
         tripRepository.deleteById(id);
     }
 
     private TripResponse mapToResponse(Trip trip) {
+
         TripResponse response = new TripResponse();
 
         response.setId(trip.getId());
