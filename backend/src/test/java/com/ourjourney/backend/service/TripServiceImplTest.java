@@ -21,7 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.ourjourney.backend.dto.TripRequest;
 import com.ourjourney.backend.dto.TripResponse;
 import com.ourjourney.backend.entity.Trip;
+import com.ourjourney.backend.entity.TripMember;
+import com.ourjourney.backend.entity.User;
+import com.ourjourney.backend.repository.TripMemberRepository;
 import com.ourjourney.backend.repository.TripRepository;
+import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.impl.TripServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +36,13 @@ class TripServiceImplTest {
 
     @InjectMocks
     private TripServiceImpl tripService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private TripMemberRepository tripMemberRepository;
+
 
     private Trip trip;
     private TripRequest request;
@@ -61,18 +72,48 @@ class TripServiceImplTest {
     @Test
     void shouldCreateTripSuccessfully() {
 
+        String currentUserEmail = "test@example.com";
+
+        User user = User.builder()
+                .id(1L)
+                .name("Rosmary")
+                .email(currentUserEmail)
+                .build();
+
+        when(userRepository.findByEmail(currentUserEmail))
+                .thenReturn(Optional.of(user));
+
         when(tripRepository.save(any(Trip.class)))
                 .thenReturn(trip);
 
-        TripResponse response = tripService.createTrip(request);
+        when(tripMemberRepository.save(any(TripMember.class)))
+                .thenReturn(new TripMember());
+
+        TripResponse response =
+                tripService.createTrip(
+                        request,
+                        currentUserEmail
+                );
 
         assertEquals(1L, response.getId());
-        assertEquals("The Canary Islands 2027", response.getName());
-        assertEquals("Gran Canaria and Tenerife", response.getDestination());
+        assertEquals(
+                "The Canary Islands 2027",
+                response.getName()
+        );
+        assertEquals(
+                "Gran Canaria and Tenerife",
+                response.getDestination()
+        );
 
-        verify(tripRepository).save(any(Trip.class));
+        verify(userRepository)
+                .findByEmail(currentUserEmail);
+
+        verify(tripRepository)
+                .save(any(Trip.class));
+
+        verify(tripMemberRepository)
+                .save(any(TripMember.class));
     }
-
     @Test
     void shouldReturnAllTrips() {
 

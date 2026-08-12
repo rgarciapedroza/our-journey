@@ -1,6 +1,8 @@
 package com.ourjourney.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -87,14 +89,21 @@ class TripControllerTest {
     @Test
     void shouldCreateTripSuccessfully() throws Exception {
 
-        when(tripService.createTrip(any(TripRequest.class)))
-                .thenReturn(tripResponse);
+        when(tripService.createTrip(
+                any(TripRequest.class),
+                eq("rosmary@gmail.com")
+        )).thenReturn(tripResponse);
 
         mockMvc.perform(
                 post("/api/trips")
-                        .header("Authorization", "Bearer " + token)
+                        .header(
+                                "Authorization",
+                                "Bearer " + token
+                        )
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(request))
+                        .content(
+                                objectMapper.writeValueAsString(request)
+                        )
         )
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(1))
