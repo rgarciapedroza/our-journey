@@ -3,9 +3,12 @@ package com.ourjourney.backend.service.impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
+import com.ourjourney.backend.dto.UserProfileResponse;
+import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
@@ -21,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -82,5 +86,72 @@ public class UserServiceImpl implements UserService {
         response.setProfilePicture(user.getProfilePicture());
 
         return response;
+    }
+
+    @Override
+    public UserProfileResponse updateCurrentUser(
+            String currentEmail,
+            UserProfileUpdateRequest request
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("User not found")
+                );
+
+        if (!user.getEmail().equals(request.getEmail())
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException(
+                    "Email already registered"
+            );
+        }
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setProfilePicture(request.getProfilePicture());
+
+        User savedUser = userRepository.save(user);
+
+        return UserProfileResponse.builder()
+                .id(savedUser.getId())
+                .name(savedUser.getName())
+                .email(savedUser.getEmail())
+                .profilePicture(savedUser.getProfilePicture())
+                .build();
+    }
+
+    @Override
+    public void changePassword(
+            String currentEmail,
+            ChangePasswordRequest request
+    ) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("User not found")
+                );
+
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                user.getPassword()
+        )) {
+            throw new IllegalArgumentException(
+                    "Current password is incorrect"
+            );
+        }
+
+        if (!request.getNewPassword().equals(
+                request.getConfirmNewPassword()
+        )) {
+            throw new IllegalArgumentException(
+                    "Passwords do not match"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        userRepository.save(user);
     }
 }
