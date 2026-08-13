@@ -122,7 +122,7 @@ class TripControllerTest {
         secondTrip.setDescription("Trip around France");
         secondTrip.setDestination("France");
 
-        when(tripService.getAllTrips())
+        when(tripService.getAllTrips("rosmary@gmail.com"))
                 .thenReturn(List.of(tripResponse, secondTrip));
 
         mockMvc.perform(
@@ -142,7 +142,7 @@ class TripControllerTest {
     @Test
     void shouldReturnTripById() throws Exception {
 
-        when(tripService.getTripById(1L))
+        when(tripService.getTripById(1L, "rosmary@gmail.com"))
                 .thenReturn(tripResponse);
 
         mockMvc.perform(
@@ -160,7 +160,7 @@ class TripControllerTest {
     @Test
     void shouldReturnNotFoundWhenTripDoesNotExist() throws Exception {
 
-        when(tripService.getTripById(999L))
+        when(tripService.getTripById(999L, "rosmary@gmail.com"))
                 .thenThrow(
                         new IllegalArgumentException("Trip not found")
                 );
@@ -191,8 +191,9 @@ class TripControllerTest {
         updatedResponse.setCoverImage("Maspalomas.jpg");
 
         when(tripService.updateTrip(
-                org.mockito.ArgumentMatchers.eq(1L),
-                any(TripRequest.class)
+                eq(1L),
+                any(TripRequest.class),
+                eq("rosmary@gmail.com")
         )).thenReturn(updatedResponse);
 
         mockMvc.perform(
@@ -212,7 +213,7 @@ class TripControllerTest {
 
         doNothing()
                 .when(tripService)
-                .deleteTrip(1L);
+                .deleteTrip(1L, "rosmary@gmail.com");
 
         mockMvc.perform(
                 delete("/api/trips/1")
@@ -229,7 +230,7 @@ class TripControllerTest {
                 new IllegalArgumentException("Trip not found")
         )
         .when(tripService)
-        .deleteTrip(999L);
+        .deleteTrip(999L, "rosmary@gmail.com");
 
         mockMvc.perform(
                 delete("/api/trips/999")
