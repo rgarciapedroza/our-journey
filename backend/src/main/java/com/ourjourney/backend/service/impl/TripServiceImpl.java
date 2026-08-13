@@ -15,6 +15,7 @@ import com.ourjourney.backend.repository.TripRepository;
 import com.ourjourney.backend.repository.TripMemberRepository;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.TripService;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,21 +64,54 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripResponse> getAllTrips() {
+public List<TripResponse> getAllTrips(
+        String currentUserEmail) {
 
-        return tripRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
+    User currentUser = userRepository
+            .findByEmail(currentUserEmail)
+            .orElseThrow(() ->
+                    new IllegalArgumentException(
+                            "User not found"
+                    )
+            );
+
+    List<TripMember> memberships =
+            tripMemberRepository.findByUserId(
+                    currentUser.getId()
+            );
+
+    System.out.println(
+            "GET TRIPS - USER ID: "
+            + currentUser.getId()
+            + " - EMAIL: "
+            + currentUser.getEmail()
+    );
+
+    System.out.println(
+            "MEMBERSHIPS: "
+            + memberships.size()
+    );
+
+    return memberships
+            .stream()
+            .map(TripMember::getTrip)
+            .map(this::mapToResponse)
+            .toList();
+}
 
     @Override
-    public TripResponse getTripById(Long id) {
+    public TripResponse getTripById(
+            Long id,
+            String currentUserEmail) {
 
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "Trip not found"));
+                                "Trip not found"
+                        )
+                );
+
+        getCurrentMember(id, currentUserEmail);
 
         return mapToResponse(trip);
     }
@@ -85,12 +119,24 @@ public class TripServiceImpl implements TripService {
     @Override
     public TripResponse updateTrip(
             Long id,
-            TripRequest request) {
+            TripRequest request,
+            String currentUserEmail) {
 
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "Trip not found"));
+                                "Trip not found"
+                        )
+                );
+
+        TripMember currentMember =
+                getCurrentMember(id, currentUserEmail);
+
+        if (currentMember.getRole() != TripMemberRole.OWNER) {
+            throw new IllegalArgumentException(
+                    "Only the trip owner can update the trip"
+            );
+        }
 
         trip.setName(request.getName());
         trip.setDescription(request.getDescription());
@@ -106,13 +152,27 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public void deleteTrip(Long id) {
+    @Transactional
+    public void deleteTrip(
+            Long id,
+            String currentUserEmail) {
 
         if (!tripRepository.existsById(id)) {
             throw new IllegalArgumentException(
-                    "Trip not found");
+                    "Trip not found"
+            );
         }
 
+        TripMember currentMember =
+                getCurrentMember(id, currentUserEmail);
+
+        if (currentMember.getRole() != TripMemberRole.OWNER) {
+            throw new IllegalArgumentException(
+                    "Only the trip owner can delete the trip"
+            );
+        }
+
+        tripMemberRepository.deleteByTripId(id);
         tripRepository.deleteById(id);
     }
 
@@ -131,5 +191,29 @@ public class TripServiceImpl implements TripService {
         response.setUpdatedAt(trip.getUpdatedAt());
 
         return response;
+    }
+
+    private TripMember getCurrentMember(
+        Long tripId,
+        String currentUserEmail) {
+
+        User currentUser = userRepository
+                .findByEmail(currentUserEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
+        return tripMemberRepository
+                .findByTripIdAndUserId(
+                        tripId,
+                        currentUser.getId()
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "You are not a member of this trip"
+                        )
+                );
     }
 }

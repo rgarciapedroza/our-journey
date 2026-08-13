@@ -38,34 +38,41 @@ public class TripController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TripResponse>> getAllTrips() {
+    public ResponseEntity<List<TripResponse>> getAllTrips(
+            Authentication authentication) {
         return ResponseEntity.ok(
-                tripService.getAllTrips()
+                tripService.getAllTrips(
+                        authentication.getName()
+                )
         );
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<TripResponse> getTripById( @PathVariable Long id) {
+    public ResponseEntity<TripResponse> getTripById( @PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(
-                tripService.getTripById(id)
+                tripService.getTripById(id, authentication.getName())
         );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TripResponse> updateTrip(
             @PathVariable Long id,
-            @Valid @RequestBody TripRequest request) {
+            @Valid @RequestBody TripRequest request,
+            Authentication authentication
+        ) {
 
         return ResponseEntity.ok(
-                tripService.updateTrip(id, request)
+                tripService.updateTrip(id, request, authentication.getName())
         );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrip(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            Authentication authentication
+        ) {
 
-        tripService.deleteTrip(id);
+        tripService.deleteTrip(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
