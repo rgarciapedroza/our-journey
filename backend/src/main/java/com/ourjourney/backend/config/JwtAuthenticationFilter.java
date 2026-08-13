@@ -1,6 +1,7 @@
 package com.ourjourney.backend.config;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                 new UsernamePasswordAuthenticationToken(
                         email,
                         null,
-                        null
+                        Collections.emptyList()
                 );
 
         authentication.setDetails(
