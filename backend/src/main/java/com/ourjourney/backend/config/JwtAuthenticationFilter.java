@@ -38,10 +38,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
         String token = authHeader.substring(7);
 
-        if (jwtService.isTokenValid(token)
-            && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+        try {
         String email = jwtService.extractEmail(token);
+
+        System.out.println("JWT VALID - EMAIL: " + email);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -57,6 +57,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
+
+        } catch (Exception e) {
+        System.out.println("JWT ERROR: " + e.getClass().getName());
+        System.out.println("JWT ERROR MESSAGE: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
     }
