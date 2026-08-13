@@ -531,4 +531,63 @@ class TripServiceImplTest {
         verify(tripRepository, never())
                 .deleteById(999L);
     }
+
+    @Test
+    void shouldThrowExceptionWhenGettingTripsForUnknownUser() {
+
+    String currentUserEmail = "unknown@example.com";
+
+    when(userRepository.findByEmail(currentUserEmail))
+        .thenReturn(Optional.empty());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> tripService.getAllTrips(
+                currentUserEmail
+        )
+    );
+
+    verify(userRepository)
+        .findByEmail(currentUserEmail);
+
+    verify(tripMemberRepository, never())
+        .findByUserId(any());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenUserHasNoTrips() {
+
+    String currentUserEmail = "test@example.com";
+
+    User user = User.builder()
+        .id(1L)
+        .name("Rosmary")
+        .email(currentUserEmail)
+        .build();
+
+    when(userRepository.findByEmail(currentUserEmail))
+        .thenReturn(Optional.of(user));
+
+    when(tripMemberRepository.findByUserId(user.getId()))
+        .thenReturn(List.of());
+
+    List<TripResponse> responses =
+        tripService.getAllTrips(
+                currentUserEmail
+        );
+
+    assertEquals(
+        0,
+        responses.size()
+    );
+
+    verify(userRepository)
+        .findByEmail(currentUserEmail);
+
+    verify(tripMemberRepository)
+        .findByUserId(user.getId());
+
+    verify(tripRepository, never())
+        .findAll();
+    }
 }
