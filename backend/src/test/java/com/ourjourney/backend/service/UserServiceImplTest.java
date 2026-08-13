@@ -17,9 +17,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
+import com.ourjourney.backend.dto.UserProfileResponse;
+import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
@@ -191,4 +194,219 @@ class UserServiceImplTest {
                 () -> userService.login(request)
         );
     }
+
+        @Test
+        void shouldGetCurrentUserSuccessfully() {
+
+        String email = "rosmary@gmail.com";
+
+        User user = User.builder()
+                .id(1L)
+                .name("Rosmary")
+                .email(email)
+                .password("encodedPassword")
+                .profilePicture("profile.jpg")
+                .build();
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(user));
+
+        UserResponse response =
+                userService.getCurrentUser(email);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("Rosmary", response.getName());
+        assertEquals(email, response.getEmail());
+        assertEquals("profile.jpg", response.getProfilePicture());
+
+        verify(userRepository)
+                .findByEmail(email);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenCurrentUserDoesNotExist() {
+
+        String email = "unknown@gmail.com";
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.getCurrentUser(email)
+        );
+
+        verify(userRepository)
+                .findByEmail(email);
+        }
+
+
+        @Test
+        void shouldChangePasswordSuccessfully() {
+
+        String email = "rosmary@gmail.com";
+
+        User user = User.builder()
+                .id(1L)
+                .name("Rosmary")
+                .email(email)
+                .password("encodedOldPassword")
+                .build();
+
+        ChangePasswordRequest request =
+                new ChangePasswordRequest();
+
+        request.setCurrentPassword("oldPassword");
+        request.setNewPassword("newPassword123");
+        request.setConfirmNewPassword("newPassword123");
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(
+                "oldPassword",
+                "encodedOldPassword"
+        )).thenReturn(true);
+
+        when(passwordEncoder.encode("newPassword123"))
+                .thenReturn("encodedNewPassword");
+
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
+
+        userService.changePassword(
+                email,
+                request
+        );
+
+        assertEquals(
+                "encodedNewPassword",
+                user.getPassword()
+        );
+
+        verify(passwordEncoder)
+                .matches(
+                        "oldPassword",
+                        "encodedOldPassword"
+                );
+
+        verify(passwordEncoder)
+                .encode("newPassword123");
+
+        verify(userRepository)
+                .save(user);
+        }
+
+        @Test
+        void shouldNotChangePasswordWhenCurrentPasswordIsIncorrect() {
+
+        String email = "rosmary@gmail.com";
+
+        User user = User.builder()
+                .id(1L)
+                .email(email)
+                .password("encodedOldPassword")
+                .build();
+
+        ChangePasswordRequest request =
+                new ChangePasswordRequest();
+
+        request.setCurrentPassword("wrongPassword");
+        request.setNewPassword("newPassword123");
+        request.setConfirmNewPassword("newPassword123");
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(
+                "wrongPassword",
+                "encodedOldPassword"
+        )).thenReturn(false);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.changePassword(
+                        email,
+                        request
+                )
+        );
+
+        verify(passwordEncoder, never())
+                .encode(any(String.class));
+
+        verify(userRepository, never())
+                .save(any(User.class));
+        }
+
+        @Test
+        void shouldNotChangePasswordWhenNewPasswordsDoNotMatch() {
+
+        String email = "rosmary@gmail.com";
+
+        User user = User.builder()
+                .id(1L)
+                .email(email)
+                .password("encodedOldPassword")
+                .build();
+
+        ChangePasswordRequest request =
+                new ChangePasswordRequest();
+
+        request.setCurrentPassword("oldPassword");
+        request.setNewPassword("newPassword123");
+        request.setConfirmNewPassword("differentPassword");
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(
+                "oldPassword",
+                "encodedOldPassword"
+        )).thenReturn(true);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.changePassword(
+                        email,
+                        request
+                )
+        );
+
+        verify(passwordEncoder, never())
+                .encode(any(String.class));
+
+        verify(userRepository, never())
+                .save(any(User.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenChangingPasswordForNonExistingUser() {
+
+        String email = "unknown@gmail.com";
+
+        ChangePasswordRequest request =
+                new ChangePasswordRequest();
+
+        request.setCurrentPassword("oldPassword");
+        request.setNewPassword("newPassword123");
+        request.setConfirmNewPassword("newPassword123");
+
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.changePassword(
+                        email,
+                        request
+                )
+        );
+
+        verify(passwordEncoder, never())
+                .encode(any(String.class));
+
+        verify(userRepository, never())
+                .save(any(User.class));
+        }
 }
