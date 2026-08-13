@@ -1,6 +1,7 @@
 package com.ourjourney.backend.config;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,16 +38,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
         String token = authHeader.substring(7);
 
-        if (jwtService.isTokenValid(token)
-            && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+        try {
         String email = jwtService.extractEmail(token);
+
+        System.out.println("JWT VALID - EMAIL: " + email);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         email,
                         null,
-                        null
+                        Collections.emptyList()
                 );
 
         authentication.setDetails(
@@ -56,6 +57,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
+
+        } catch (Exception e) {
+        System.out.println("JWT ERROR: " + e.getClass().getName());
+        System.out.println("JWT ERROR MESSAGE: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
     }

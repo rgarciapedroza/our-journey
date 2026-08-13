@@ -7,9 +7,9 @@ import com.ourjourney.backend.dto.TripResponse;
 
 public interface TripService {
     
-    TripResponse createTrip(TripRequest request);
-    List<TripResponse> getAllTrips();
-    TripResponse getTripById(Long id);
-    TripResponse updateTrip(Long id, TripRequest request);
-    void deleteTrip(Long id);
+    TripResponse createTrip(TripRequest request, String currentUserEmail);
+    List<TripResponse> getAllTrips(String currentUserEmail);
+    TripResponse getTripById(Long id, String currentUserEmail);
+    TripResponse updateTrip(Long id, TripRequest request, String currentUserEmail);
+    void deleteTrip(Long id, String currentUserEmail);
 }

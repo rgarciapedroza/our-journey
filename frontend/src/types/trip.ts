@@ -18,3 +18,15 @@ export interface TripRequest {
     endDate: string;
     coverImage?: string;
 }
+
+export interface TripMember {
+    userId: number;
+    name: string;
+    email: string;
+    profilePicture?: string;
+    role: "OWNER" | "MEMBER";
+}
+
+export interface AddTripMemberRequest {
+    email: string;
+}

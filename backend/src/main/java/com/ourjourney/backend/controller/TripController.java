@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,41 +31,48 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping
-    public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripRequest request) {
+    public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripRequest request, Authentication authentication) {
         return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(tripService.createTrip(request));
+                    .body(tripService.createTrip(request, authentication.getName()));
     }
 
     @GetMapping
-    public ResponseEntity<List<TripResponse>> getAllTrips() {
+    public ResponseEntity<List<TripResponse>> getAllTrips(
+            Authentication authentication) {
         return ResponseEntity.ok(
-                tripService.getAllTrips()
+                tripService.getAllTrips(
+                        authentication.getName()
+                )
         );
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<TripResponse> getTripById( @PathVariable Long id) {
+    public ResponseEntity<TripResponse> getTripById( @PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(
-                tripService.getTripById(id)
+                tripService.getTripById(id, authentication.getName())
         );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TripResponse> updateTrip(
             @PathVariable Long id,
-            @Valid @RequestBody TripRequest request) {
+            @Valid @RequestBody TripRequest request,
+            Authentication authentication
+        ) {
 
         return ResponseEntity.ok(
-                tripService.updateTrip(id, request)
+                tripService.updateTrip(id, request, authentication.getName())
         );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrip(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            Authentication authentication
+        ) {
 
-        tripService.deleteTrip(id);
+        tripService.deleteTrip(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
