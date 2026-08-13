@@ -12,6 +12,8 @@ public interface TripMemberRepository
 
     List<TripMember> findByTripId(Long tripId);
 
+    List<TripMember> findByUserId(Long userId);
+    
     Optional<TripMember> findByTripIdAndUserId(
             Long tripId,
             Long userId
@@ -26,4 +28,6 @@ public interface TripMemberRepository
             Long tripId,
             Long userId
     );
+
+    void deleteByTripId(Long tripId);
 }
