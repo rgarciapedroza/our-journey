@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.UserProfileResponse;
@@ -46,5 +48,18 @@ public class UserController {
         );
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/me/profile-picture")
+    public ResponseEntity<UserProfileResponse> updateProfilePicture(
+        Authentication authentication,
+        @RequestPart("file") MultipartFile file
+        ) {
+        return ResponseEntity.ok(
+                userService.updateProfilePicture(
+                        authentication.getName(),
+                        file
+                )
+        );
     }
 }

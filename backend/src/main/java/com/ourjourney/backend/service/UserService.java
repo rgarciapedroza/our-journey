@@ -1,5 +1,7 @@
 package com.ourjourney.backend.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
@@ -21,5 +23,10 @@ public interface UserService {
     void changePassword(
         String currentEmail,
         ChangePasswordRequest request
+    );
+
+    UserProfileResponse updateProfilePicture(
+        String currentEmail,
+        MultipartFile file
     );
 }

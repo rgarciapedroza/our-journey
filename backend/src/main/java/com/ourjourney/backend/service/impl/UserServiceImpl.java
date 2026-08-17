@@ -2,6 +2,7 @@ package com.ourjourney.backend.service.impl;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.LoginRequest;
@@ -13,6 +14,7 @@ import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
+import com.ourjourney.backend.service.SupabaseStorageService;
 import com.ourjourney.backend.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final SupabaseStorageService supabaseStorageService;
 
 
     @Override
@@ -153,5 +156,43 @@ public class UserServiceImpl implements UserService {
         );
 
         userRepository.save(user);
+    }
+
+    @Override
+    public UserProfileResponse updateProfilePicture(
+            String currentEmail,
+            MultipartFile file
+    ) {
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
+        String oldProfilePicture = user.getProfilePicture();
+
+        String profilePicture =
+                supabaseStorageService.uploadProfilePicture(
+                        user.getId(),
+                        file
+                );
+
+        user.setProfilePicture(profilePicture);
+
+        User savedUser = userRepository.save(user);
+
+        UserProfileResponse response =
+                new UserProfileResponse();
+
+        response.setId(savedUser.getId());
+        response.setName(savedUser.getName());
+        response.setEmail(savedUser.getEmail());
+        response.setProfilePicture(
+                savedUser.getProfilePicture()
+        );
+
+        return response;
     }
 }
