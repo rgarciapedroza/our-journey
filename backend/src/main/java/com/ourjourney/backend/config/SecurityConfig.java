@@ -29,6 +29,12 @@ public class SecurityConfig {
             .cors(cors -> {
             })
 
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS
+                )
+            )
+
             .authorizeHttpRequests(auth -> auth
 
                 .requestMatchers(
@@ -47,12 +53,6 @@ public class SecurityConfig {
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
-            )
-
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
-                )
             )
 
             .exceptionHandling(exception ->

@@ -63,45 +63,33 @@ public class TripServiceImpl implements TripService {
         return mapToResponse(savedTrip);
     }
 
-    @Override
-public List<TripResponse> getAllTrips(
-        String currentUserEmail) {
+        @Override
+        public List<TripResponse> getAllTrips(
+                String currentUserEmail) {
 
-    User currentUser = userRepository
-            .findByEmail(currentUserEmail)
-            .orElseThrow(() ->
-                    new IllegalArgumentException(
-                            "User not found"
-                    )
-            );
+        User currentUser = userRepository
+                .findByEmail(currentUserEmail)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
 
-    List<TripMember> memberships =
-            tripMemberRepository.findByUserId(
-                    currentUser.getId()
-            );
+        List<TripMember> memberships =
+                tripMemberRepository.findByUserId(
+                        currentUser.getId()
+                );
 
-    System.out.println(
-            "GET TRIPS - USER ID: "
-            + currentUser.getId()
-            + " - EMAIL: "
-            + currentUser.getEmail()
-    );
-
-    System.out.println(
-            "MEMBERSHIPS: "
-            + memberships.size()
-    );
-
-    return memberships
-            .stream()
-            .map(TripMember::getTrip)
-            .map(this::mapToResponse)
-            .toList();
-}
+        return memberships
+                .stream()
+                .map(TripMember::getTrip)
+                .map(this::mapToResponse)
+                .toList();
+        }
 
     @Override
     public TripResponse getTripById(
-            Long id,
+             Long id,
             String currentUserEmail) {
 
         Trip trip = tripRepository.findById(id)
@@ -118,7 +106,7 @@ public List<TripResponse> getAllTrips(
 
     @Override
     public TripResponse updateTrip(
-            Long id,
+             Long id,
             TripRequest request,
             String currentUserEmail) {
 
@@ -154,7 +142,7 @@ public List<TripResponse> getAllTrips(
     @Override
     @Transactional
     public void deleteTrip(
-            Long id,
+             Long id,
             String currentUserEmail) {
 
         if (!tripRepository.existsById(id)) {
@@ -194,7 +182,7 @@ public List<TripResponse> getAllTrips(
     }
 
     private TripMember getCurrentMember(
-        Long tripId,
+         Long tripId,
         String currentUserEmail) {
 
         User currentUser = userRepository

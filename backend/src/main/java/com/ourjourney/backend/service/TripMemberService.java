@@ -10,14 +10,14 @@ public interface TripMemberService {
     List<TripMemberResponse> getMembers(Long tripId);
 
     TripMemberResponse addMember(
-            Long tripId,
+             Long tripId,
             AddTripMemberRequest request,
             String currentUserEmail
     );
 
     void removeMember(
-            Long tripId,
-            Long userId,
+             Long tripId,
+             Long userId,
             String currentUserEmail
     );
 }
