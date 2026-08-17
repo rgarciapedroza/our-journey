@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,14 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserProfileResponse;
-import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
@@ -44,6 +46,9 @@ class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl userService;
+
+    @Mock
+    private SupabaseStorageService supabaseStorageService;
 
     private RegisterRequest createValidRegisterRequest() {
         RegisterRequest request = new RegisterRequest();
@@ -408,5 +413,82 @@ class UserServiceImplTest {
 
         verify(userRepository, never())
                 .save(any(User.class));
+        }
+
+        @Test
+        void shouldUpdateProfilePictureSuccessfully() {
+
+        User user = new User();
+        user.setId(1L);
+        user.setName("Rosmary");
+        user.setEmail("rosmary@gmail.com");
+
+        when(userRepository.findByEmail("rosmary@gmail.com"))
+                .thenReturn(Optional.of(user));
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "profile.jpg",
+                "image/jpeg",
+                "fake-image-content".getBytes()
+        );
+
+        String uploadedUrl =
+                "https://example.supabase.co/storage/v1/object/public/profile-pictures/1/profile.jpg";
+
+        when(supabaseStorageService.uploadProfilePicture(
+                eq(1L),
+                any(MultipartFile.class)
+        )).thenReturn(uploadedUrl);
+
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
+
+        UserProfileResponse response =
+                userService.updateProfilePicture(
+                        "rosmary@gmail.com",
+                        file
+                );
+
+        assertEquals(1L, response.getId());
+        assertEquals("Rosmary", response.getName());
+        assertEquals("rosmary@gmail.com", response.getEmail());
+        assertEquals(uploadedUrl, response.getProfilePicture());
+
+        verify(supabaseStorageService)
+                .uploadProfilePicture(
+                        eq(1L),
+                        eq(file)
+                );
+
+        verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenUpdatingProfilePictureForUnknownUser() {
+
+        when(userRepository.findByEmail("unknown@gmail.com"))
+                .thenReturn(Optional.empty());
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "profile.jpg",
+                "image/jpeg",
+                "fake-image-content".getBytes()
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.updateProfilePicture(
+                        "unknown@gmail.com",
+                        file
+                )
+        );
+
+        verify(supabaseStorageService, never())
+                .uploadProfilePicture(
+                        any(Long.class),
+                        any(MultipartFile.class)
+                );
         }
 }

@@ -3,223 +3,275 @@ package com.ourjourney.backend.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ourjourney.backend.config.SecurityConfig;
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.UserProfileResponse;
 import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.UserService;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = {
-    "jwt.secret=test-secret-key-for-jwt-authentication"
-})
+@WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
 class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private UserService userService;
+        @MockitoBean
+        private UserService userService;
 
-    @Autowired
-    private JwtService jwtService;
+        @MockitoBean
+        private JwtService jwtService;
 
-    @Test
-    void shouldReturnUnauthorizedWhenUpdatingProfileWithoutToken()
-            throws Exception {
+        @MockitoBean
+        private UserDetailsService userDetailsService;
 
-        UserProfileUpdateRequest request =
-                new UserProfileUpdateRequest();
+        @Test
+        void shouldReturnUnauthorizedWhenUpdatingProfileWithoutToken()
+                throws Exception {
 
-        request.setName("Updated Name");
-        request.setEmail("updated@example.com");
+                UserProfileUpdateRequest request =
+                        new UserProfileUpdateRequest();
+
+                request.setName("Updated Name");
+                request.setEmail("updated@example.com");
+
+                mockMvc.perform(
+                        put("/api/users/me")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldUpdateProfileSuccessfully()
+                throws Exception {
+
+                String email = "test@example.com";
+
+                UserProfileUpdateRequest request =
+                        new UserProfileUpdateRequest();
+
+                request.setName("Updated Name");
+                request.setEmail("updated@example.com");
+
+                UserProfileResponse response =
+                        new UserProfileResponse();
+
+                response.setId(1L);
+                response.setName("Updated Name");
+                response.setEmail("updated@example.com");
+                response.setProfilePicture(null);
+
+                when(userService.updateCurrentUser(
+                        eq(email),
+                        any(UserProfileUpdateRequest.class)
+                )).thenReturn(response);
+
+                mockMvc.perform(
+                        put("/api/users/me")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isOk());
+
+                verify(userService).updateCurrentUser(
+                        eq(email),
+                        any(UserProfileUpdateRequest.class)
+                );
+        }
+
+        @Test
+        void shouldReturnUnauthorizedWhenChangingPasswordWithoutToken()
+                throws Exception {
+
+                ChangePasswordRequest request =
+                        new ChangePasswordRequest();
+
+                request.setCurrentPassword("oldPassword");
+                request.setNewPassword("newPassword123");
+                request.setConfirmNewPassword("newPassword123");
+
+                mockMvc.perform(
+                        put("/api/users/me/password")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldChangePasswordSuccessfully()
+                throws Exception {
+
+                String email = "test@example.com";
+
+                ChangePasswordRequest request =
+                        new ChangePasswordRequest();
+
+                request.setCurrentPassword("oldPassword");
+                request.setNewPassword("newPassword123");
+                request.setConfirmNewPassword("newPassword123");
+
+                doNothing().when(userService)
+                        .changePassword(
+                                eq(email),
+                                any(ChangePasswordRequest.class)
+                        );
+
+                mockMvc.perform(
+                        put("/api/users/me/password")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isNoContent());
+
+                verify(userService).changePassword(
+                        eq(email),
+                        any(ChangePasswordRequest.class)
+                );
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldReturnBadRequestWhenProfileDataIsInvalid()
+                throws Exception {
+
+                UserProfileUpdateRequest request =
+                        new UserProfileUpdateRequest();
+
+                request.setName("");
+                request.setEmail("invalid-email");
+
+                mockMvc.perform(
+                        put("/api/users/me")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldReturnBadRequestWhenPasswordDataIsInvalid()
+                throws Exception {
+
+                ChangePasswordRequest request =
+                        new ChangePasswordRequest();
+
+                request.setCurrentPassword("");
+                request.setNewPassword("");
+                request.setConfirmNewPassword("");
+
+                mockMvc.perform(
+                        put("/api/users/me/password")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isBadRequest());
+        }
+
+        
+        @Test
+        void shouldReturnUnauthorizedWhenUploadingProfilePictureWithoutToken()
+                throws Exception {
+
+        MockMultipartFile file =
+                new MockMultipartFile(
+                        "file",
+                        "profile.png",
+                        "image/png",
+                        "fake-image".getBytes()
+                );
 
         mockMvc.perform(
-                put("/api/users/me")
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
+                multipart("/api/users/me/profile-picture")
+                        .file(file)
+                        .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                        })
         )
         .andExpect(status().isUnauthorized());
-    }
+        }
 
-    @Test
-    void shouldUpdateProfileSuccessfully()
-            throws Exception {
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldUpdateProfilePictureSuccessfully()
+                throws Exception {
 
-        String email = "test@example.com";
-        String token = jwtService.generateToken(email);
-
-        UserProfileUpdateRequest request =
-                new UserProfileUpdateRequest();
-
-        request.setName("Updated Name");
-        request.setEmail("updated@example.com");
+        MockMultipartFile file =
+                new MockMultipartFile(
+                        "file",
+                        "profile.png",
+                        "image/png",
+                        "fake-image".getBytes()
+                );
 
         UserProfileResponse response =
                 new UserProfileResponse();
 
         response.setId(1L);
-        response.setName("Updated Name");
-        response.setEmail("updated@example.com");
-        response.setProfilePicture(null);
+        response.setName("Test User");
+        response.setEmail("test@example.com");
+        response.setProfilePicture(
+                "https://test.supabase.co/profile.png"
+        );
 
-        when(userService.updateCurrentUser(
-                eq(email),
-                any(UserProfileUpdateRequest.class)
+        when(userService.updateProfilePicture(
+                eq("test@example.com"),
+                any(MultipartFile.class)
         )).thenReturn(response);
 
         mockMvc.perform(
-                put("/api/users/me")
-                        .header(
-                                "Authorization",
-                                "Bearer " + token
-                        )
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
+                multipart("/api/users/me/profile-picture")
+                        .file(file)
+                        .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                        })
         )
         .andExpect(status().isOk());
 
-        verify(userService).updateCurrentUser(
-                eq(email),
-                any(UserProfileUpdateRequest.class)
+        verify(userService).updateProfilePicture(
+                eq("test@example.com"),
+                any(MultipartFile.class)
         );
-    }
-
-    @Test
-    void shouldReturnUnauthorizedWhenChangingPasswordWithoutToken()
-            throws Exception {
-
-        ChangePasswordRequest request =
-                new ChangePasswordRequest();
-
-        request.setCurrentPassword("oldPassword");
-        request.setNewPassword("newPassword123");
-        request.setConfirmNewPassword("newPassword123");
-
-        mockMvc.perform(
-                put("/api/users/me/password")
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
-        )
-        .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void shouldChangePasswordSuccessfully()
-            throws Exception {
-
-        String email = "test@example.com";
-        String token = jwtService.generateToken(email);
-
-        ChangePasswordRequest request =
-                new ChangePasswordRequest();
-
-        request.setCurrentPassword("oldPassword");
-        request.setNewPassword("newPassword123");
-        request.setConfirmNewPassword("newPassword123");
-
-        doNothing().when(userService)
-                .changePassword(
-                        eq(email),
-                        any(ChangePasswordRequest.class)
-                );
-
-        mockMvc.perform(
-                put("/api/users/me/password")
-                        .header(
-                                "Authorization",
-                                "Bearer " + token
-                        )
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
-        )
-        .andExpect(status().isNoContent());
-
-        verify(userService).changePassword(
-                eq(email),
-                any(ChangePasswordRequest.class)
-        );
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenProfileDataIsInvalid()
-            throws Exception {
-
-        UserProfileUpdateRequest request =
-                new UserProfileUpdateRequest();
-
-        request.setName("");
-        request.setEmail("invalid-email");
-
-        String email = "test@example.com";
-        String token = jwtService.generateToken(email);
-
-        mockMvc.perform(
-                put("/api/users/me")
-                        .header(
-                                "Authorization",
-                                "Bearer " + token
-                        )
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
-        )
-        .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenPasswordDataIsInvalid()
-            throws Exception {
-
-        ChangePasswordRequest request =
-                new ChangePasswordRequest();
-
-        request.setCurrentPassword("");
-        request.setNewPassword("");
-        request.setConfirmNewPassword("");
-
-        String email = "test@example.com";
-        String token = jwtService.generateToken(email);
-
-        mockMvc.perform(
-                put("/api/users/me/password")
-                        .header(
-                                "Authorization",
-                                "Bearer " + token
-                        )
-                        .contentType("application/json")
-                        .content(
-                                objectMapper.writeValueAsString(request)
-                        )
-        )
-        .andExpect(status().isBadRequest());
-    }
+        }
 }
