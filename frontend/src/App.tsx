@@ -8,6 +8,7 @@ import Layout from "./components/Layout";
 import TripDetailPage from "./pages/TripDetailPage";
 import CreateTripPage from "./pages/CreateTripPage";
 import EditTripPage from "./pages/EditTripPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
 
 function App() {
     return (
@@ -15,6 +16,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/account-settings" element={<AccountSettingsPage />} />
 
                 <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +25,8 @@ import com.ourjourney.backend.config.SecurityConfig;
 import com.ourjourney.backend.dto.ChangePasswordRequest;
 import com.ourjourney.backend.dto.UserProfileResponse;
 import com.ourjourney.backend.dto.UserProfileUpdateRequest;
+import com.ourjourney.backend.dto.VerifyPasswordRequest;
+import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.UserService;
 
@@ -45,7 +47,7 @@ class UserControllerTest {
         private JwtService jwtService;
 
         @MockitoBean
-        private UserDetailsService userDetailsService;
+        private UserRepository userRepository;
 
         @Test
         void shouldReturnUnauthorizedWhenUpdatingProfileWithoutToken()
@@ -55,7 +57,6 @@ class UserControllerTest {
                         new UserProfileUpdateRequest();
 
                 request.setName("Updated Name");
-                request.setEmail("updated@example.com");
 
                 mockMvc.perform(
                         put("/api/users/me")
@@ -78,7 +79,6 @@ class UserControllerTest {
                         new UserProfileUpdateRequest();
 
                 request.setName("Updated Name");
-                request.setEmail("updated@example.com");
 
                 UserProfileResponse response =
                         new UserProfileResponse();
@@ -173,7 +173,6 @@ class UserControllerTest {
                         new UserProfileUpdateRequest();
 
                 request.setName("");
-                request.setEmail("invalid-email");
 
                 mockMvc.perform(
                         put("/api/users/me")
@@ -203,6 +202,62 @@ class UserControllerTest {
                                 .content(
                                         objectMapper.writeValueAsString(request)
                                 )
+                )
+                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldVerifyCurrentPasswordSuccessfully() throws Exception {
+                VerifyPasswordRequest request =
+                        new VerifyPasswordRequest("oldPassword");
+
+                when(userService.verifyPassword(
+                        "test@example.com",
+                        "oldPassword"
+                )).thenReturn(true);
+
+                mockMvc.perform(
+                        post("/api/users/verify-password")
+                                .contentType("application/json")
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isNoContent());
+
+                verify(userService).verifyPassword(
+                        "test@example.com",
+                        "oldPassword"
+                );
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldReturnUnauthorizedWhenCurrentPasswordIsIncorrect() throws Exception {
+                VerifyPasswordRequest request =
+                        new VerifyPasswordRequest("wrongPassword");
+
+                when(userService.verifyPassword(
+                        "test@example.com",
+                        "wrongPassword"
+                )).thenReturn(false);
+
+                mockMvc.perform(
+                        post("/api/users/verify-password")
+                                .contentType("application/json")
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @WithMockUser(username = "test@example.com")
+        void shouldReturnBadRequestWhenPasswordVerificationIsBlank() throws Exception {
+                VerifyPasswordRequest request = new VerifyPasswordRequest("");
+
+                mockMvc.perform(
+                        post("/api/users/verify-password")
+                                .contentType("application/json")
+                                .content(objectMapper.writeValueAsString(request))
                 )
                 .andExpect(status().isBadRequest());
         }

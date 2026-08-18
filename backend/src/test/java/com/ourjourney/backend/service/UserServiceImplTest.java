@@ -3,6 +3,7 @@ package com.ourjourney.backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -25,6 +26,7 @@ import com.ourjourney.backend.dto.LoginRequest;
 import com.ourjourney.backend.dto.LoginResponse;
 import com.ourjourney.backend.dto.RegisterRequest;
 import com.ourjourney.backend.dto.UserProfileResponse;
+import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.UserRepository;
@@ -244,6 +246,44 @@ class UserServiceImplTest {
 
         verify(userRepository)
                 .findByEmail(email);
+        }
+
+        @Test
+        void shouldUpdateNameWithoutChangingProfilePicture() {
+        String email = "rosmary@gmail.com";
+        User user = User.builder()
+                .id(1L)
+                .name("Old Name")
+                .email(email)
+                .profilePicture("profile.jpg")
+                .build();
+        UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+                .name("Updated Name")
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        UserProfileResponse response = userService.updateCurrentUser(email, request);
+
+        assertEquals("Updated Name", response.getName());
+        assertEquals("profile.jpg", response.getProfilePicture());
+        verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldVerifyCurrentPassword() {
+        String email = "rosmary@gmail.com";
+        User user = User.builder()
+                .email(email)
+                .password("encodedPassword")
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encodedPassword"))
+                .thenReturn(true);
+
+        assertTrue(userService.verifyPassword(email, "password123"));
         }
 
 

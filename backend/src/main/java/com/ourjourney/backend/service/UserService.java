@@ -29,4 +29,9 @@ public interface UserService {
         String currentEmail,
         MultipartFile file
     );
+
+    boolean verifyPassword(
+        String email,
+        String currentPassword
+    );
 }

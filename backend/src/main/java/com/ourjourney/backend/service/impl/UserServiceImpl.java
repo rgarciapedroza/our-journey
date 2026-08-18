@@ -12,6 +12,8 @@ import com.ourjourney.backend.dto.UserProfileResponse;
 import com.ourjourney.backend.dto.UserProfileUpdateRequest;
 import com.ourjourney.backend.dto.UserResponse;
 import com.ourjourney.backend.entity.User;
+import com.ourjourney.backend.exception.BadRequestException;
+import com.ourjourney.backend.exception.ResourceNotFoundException;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.SupabaseStorageService;
@@ -98,19 +100,10 @@ public class UserServiceImpl implements UserService {
     ) {
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
 
-        if (!user.getEmail().equals(request.getEmail())
-                && userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException(
-                    "Email already registered"
-            );
-        }
-
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setProfilePicture(request.getProfilePicture());
 
         User savedUser = userRepository.save(user);
 
@@ -123,42 +116,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(
-            String currentEmail,
-            ChangePasswordRequest request
-    ) {
-        User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("User not found")
-                );
-
-        if (!passwordEncoder.matches(
-                request.getCurrentPassword(),
-                user.getPassword()
-        )) {
-            throw new IllegalArgumentException(
-                    "Current password is incorrect"
-            );
-        }
-
-        if (!request.getNewPassword().equals(
-                request.getConfirmNewPassword()
-        )) {
-            throw new IllegalArgumentException(
-                    "Passwords do not match"
-            );
-        }
-
-        user.setPassword(
-                passwordEncoder.encode(
-                        request.getNewPassword()
-                )
-        );
-
-        userRepository.save(user);
-    }
-
-    @Override
     public UserProfileResponse updateProfilePicture(
             String currentEmail,
             MultipartFile file
@@ -166,12 +123,10 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new ResourceNotFoundException(
                                 "User not found"
                         )
                 );
-
-        String oldProfilePicture = user.getProfilePicture();
 
         String profilePicture =
                 supabaseStorageService.uploadProfilePicture(
@@ -194,5 +149,34 @@ public class UserServiceImpl implements UserService {
         );
 
         return response;
+    }
+
+    @Override
+    public boolean verifyPassword(String email, String currentPassword) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return passwordEncoder.matches(currentPassword, user.getPassword());
+    }
+
+    @Override
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            throw new BadRequestException("Password must be at least 6 characters");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }
