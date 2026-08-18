@@ -1,4 +1,4 @@
-import type { Trip, TripRequest, TripMember, AddTripMemberRequest } from "../types/trip";
+import type { Trip, TripRequest, TripMember, AddTripMemberRequest, UserSearchResult } from "../types/trip";
 import { apiFetch } from "./client";
 
 export async function getTrips(): Promise<Trip[]> {
@@ -68,5 +68,18 @@ export async function removeTripMember(
         {
             method: "DELETE",
         }
+    );
+}
+
+export async function searchAvailableTripMembers(
+    tripId: number,
+    query: string,
+    signal?: AbortSignal
+): Promise<UserSearchResult[]> {
+    const searchParams = new URLSearchParams({ query });
+
+    return apiFetch<UserSearchResult[]>(
+        `/api/trips/${tripId}/members/search?${searchParams.toString()}`,
+        { signal }
     );
 }
