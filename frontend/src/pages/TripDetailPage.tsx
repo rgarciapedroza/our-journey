@@ -8,11 +8,13 @@ import {
     getTripMembers,
     addTripMember,
     removeTripMember,
+    searchAvailableTripMembers,
 } from "../api/trips";
 
 import type {
     Trip,
     TripMember,
+    UserSearchResult,
 } from "../types/trip";
 
 import styles from "../styles/TripDetailPage.module.css";
@@ -36,6 +38,9 @@ function TripDetailPage() {
 
     const [showAddMember, setShowAddMember] = useState(false);
     const [memberEmail, setMemberEmail] = useState("");
+    const [memberSearchResults, setMemberSearchResults] = useState<UserSearchResult[]>([]);
+    const [memberSearchLoading, setMemberSearchLoading] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<UserSearchResult | null>(null);
     const [addingMember, setAddingMember] = useState(false);
     const [addMemberError, setAddMemberError] = useState<string | null>(null);
 
@@ -64,6 +69,42 @@ function TripDetailPage() {
 
         loadTrip();
     }, [id]);
+
+    useEffect(() => {
+        const query = memberEmail.trim();
+
+        if (!showAddMember || !id || query.length < 2 || selectedMember) {
+            setMemberSearchResults([]);
+            setMemberSearchLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                setMemberSearchLoading(true);
+                const results = await searchAvailableTripMembers(
+                    Number(id),
+                    query,
+                    controller.signal
+                );
+                setMemberSearchResults(results);
+            } catch (error) {
+                if (!(error instanceof DOMException && error.name === "AbortError")) {
+                    setMemberSearchResults([]);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setMemberSearchLoading(false);
+                }
+            }
+        }, 300);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+            controller.abort();
+        };
+    }, [id, memberEmail, selectedMember, showAddMember]);
 
     useEffect(() => {
         async function loadMembers() {
@@ -143,6 +184,8 @@ function TripDetailPage() {
             ]);
 
             setMemberEmail("");
+            setSelectedMember(null);
+            setMemberSearchResults([]);
             setShowAddMember(false);
         } catch (error) {
             setAddMemberError(
@@ -410,20 +453,65 @@ function TripDetailPage() {
                             {showAddMember && (
                                 <div className={styles.addMemberForm}>
                                     <div className={styles.addMemberFormContent}>
-                                        <input
-                                            type="email"
-                                            placeholder="Enter email address"
-                                            value={memberEmail}
-                                            onChange={(e) => setMemberEmail(e.target.value)}
-                                            className={styles.addMemberInput}
-                                            disabled={addingMember}
-                                        />
+                                        <div className={styles.memberSearch}>
+                                            <input
+                                                type="search"
+                                                placeholder="Search by name or email"
+                                                value={memberEmail}
+                                                onChange={(event) => {
+                                                    setMemberEmail(event.target.value);
+                                                    setSelectedMember(null);
+                                                    setAddMemberError(null);
+                                                }}
+                                                className={styles.addMemberInput}
+                                                disabled={addingMember}
+                                                autoComplete="off"
+                                                aria-label="Search users by name or email"
+                                                aria-expanded={memberSearchResults.length > 0}
+                                            />
+
+                                            {!selectedMember && memberEmail.trim().length >= 2 && (
+                                                <div className={styles.memberSearchResults}>
+                                                    {memberSearchLoading ? (
+                                                        <p className={styles.memberSearchStatus}>Searching users...</p>
+                                                    ) : memberSearchResults.length > 0 ? (
+                                                        memberSearchResults.map((candidate) => (
+                                                            <button
+                                                                key={candidate.id}
+                                                                type="button"
+                                                                className={styles.memberSearchResult}
+                                                                onClick={() => {
+                                                                    setSelectedMember(candidate);
+                                                                    setMemberEmail(candidate.email);
+                                                                    setMemberSearchResults([]);
+                                                                }}
+                                                            >
+                                                                <span className={styles.searchResultAvatar}>
+                                                                    {candidate.name.charAt(0).toUpperCase()}
+                                                                    {candidate.profilePicture && (
+                                                                        <img src={candidate.profilePicture} alt="" />
+                                                                    )}
+                                                                </span>
+                                                                <span className={styles.searchResultIdentity}>
+                                                                    <strong>{candidate.name}</strong>
+                                                                    <span>{candidate.email}</span>
+                                                                </span>
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <p className={styles.memberSearchStatus}>No available users found.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className={styles.addMemberActions}>
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     setShowAddMember(false);
                                                     setMemberEmail("");
+                                                    setSelectedMember(null);
+                                                    setMemberSearchResults([]);
                                                     setAddMemberError(null);
                                                 }}
                                                 className={styles.addMemberCancel}

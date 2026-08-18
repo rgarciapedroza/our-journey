@@ -30,3 +30,10 @@ export interface TripMember {
 export interface AddTripMemberRequest {
     email: string;
 }
+
+export interface UserSearchResult {
+    id: number;
+    name: string;
+    email: string;
+    profilePicture: string | null;
+}

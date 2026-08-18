@@ -26,7 +26,6 @@ function LoginPage() {
             });
             navigate("/trips");
 
-            console.log("Login successful");
         } catch (error) {
             setError("Invalid email or password");
         } finally {

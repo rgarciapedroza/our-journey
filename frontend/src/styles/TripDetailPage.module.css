@@ -387,8 +387,15 @@
     align-items: flex-start;
 }
 
-.addMemberInput {
+.memberSearch {
+    position: relative;
     flex: 1;
+    min-width: 0;
+}
+
+.addMemberInput {
+    width: 100%;
+    box-sizing: border-box;
     padding: 0.6rem 0.8rem;
     border: 2px solid #e2e8f0;
     border-radius: 0.5rem;
@@ -407,6 +414,102 @@
 
 .addMemberInput::placeholder {
     color: #a0aec0;
+}
+
+.memberSearchResults {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    left: 0;
+    max-height: 17rem;
+    padding: 0.4rem;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    box-shadow: 0 14px 32px rgba(45, 55, 72, 0.15);
+}
+
+.memberSearchResult {
+    width: 100%;
+    padding: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: #2d3748;
+    background: transparent;
+    border: 0;
+    border-radius: 0.5rem;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.memberSearchResult:hover,
+.memberSearchResult:focus-visible {
+    background: #fff5f5;
+    outline: none;
+}
+
+.memberSearchResult:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(255, 142, 146, 0.45);
+}
+
+.searchResultAvatar {
+    position: relative;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: white;
+    background: linear-gradient(135deg, #ff9da1, #ff6b73);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.searchResultAvatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.searchResultIdentity {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.searchResultIdentity strong,
+.searchResultIdentity span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.searchResultIdentity strong {
+    color: #2d3748;
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.searchResultIdentity span,
+.memberSearchStatus {
+    color: #718096;
+    font-size: 0.78rem;
+}
+
+.memberSearchStatus {
+    margin: 0;
+    padding: 0.7rem;
+    text-align: center;
 }
 
 .addMemberActions {

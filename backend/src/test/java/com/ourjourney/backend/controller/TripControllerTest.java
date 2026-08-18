@@ -1,7 +1,6 @@
 package com.ourjourney.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -19,24 +18,21 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ourjourney.backend.BackendApplication;
 import com.ourjourney.backend.dto.TripRequest;
 import com.ourjourney.backend.dto.TripResponse;
+import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.TripService;
 
-@SpringBootTest(
-    classes = BackendApplication.class,
-    properties = {
-        "jwt.secret=test-secret-key-for-jwt-authentication"
-    }
-)
+@WebMvcTest(TripController.class)
 @AutoConfigureMockMvc
 class TripControllerTest {
     
@@ -52,9 +48,11 @@ class TripControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     private TripRequest request;
     private TripResponse tripResponse;
-    private String token;
 
     @BeforeEach
     void setUp() {
@@ -76,30 +74,20 @@ class TripControllerTest {
         tripResponse.setStartDate(LocalDate.of(2026, 12, 30));
         tripResponse.setEndDate(LocalDate.of(2027, 1, 2));
         tripResponse.setCoverImage("Maspalomas.jpg");
-
-        token = "valid-token";
-
-        when(jwtService.isTokenValid(token))
-                .thenReturn(true);
-
-        when(jwtService.extractEmail(token))
-                .thenReturn("rosmary@gmail.com");
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldCreateTripSuccessfully() throws Exception {
 
         when(tripService.createTrip(
                 any(TripRequest.class),
-                eq("rosmary@gmail.com")
+                eq("test@example.com")
         )).thenReturn(tripResponse);
 
         mockMvc.perform(
                 post("/api/trips")
-                        .header(
-                                "Authorization",
-                                "Bearer " + token
-                        )
+                        .with(csrf())
                         .contentType("application/json")
                         .content(
                                 objectMapper.writeValueAsString(request)
@@ -114,6 +102,7 @@ class TripControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldReturnAllTrips() throws Exception {
 
         TripResponse secondTrip = new TripResponse();
@@ -122,12 +111,11 @@ class TripControllerTest {
         secondTrip.setDescription("Trip around France");
         secondTrip.setDestination("France");
 
-        when(tripService.getAllTrips("rosmary@gmail.com"))
+        when(tripService.getAllTrips("test@example.com"))
                 .thenReturn(List.of(tripResponse, secondTrip));
 
         mockMvc.perform(
                 get("/api/trips")
-                        .header("Authorization", "Bearer " + token)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
@@ -140,15 +128,14 @@ class TripControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldReturnTripById() throws Exception {
 
-        when(tripService.getTripById(1L, "rosmary@gmail.com"))
+        when(tripService.getTripById(1L, "test@example.com"))
                 .thenReturn(tripResponse);
 
         mockMvc.perform(
-                get("/api/trips/1")
-                        .header("Authorization", "Bearer " + token)
-        )
+                get("/api/trips/1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.name")
@@ -158,21 +145,21 @@ class TripControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldReturnNotFoundWhenTripDoesNotExist() throws Exception {
 
-        when(tripService.getTripById(999L, "rosmary@gmail.com"))
+        when(tripService.getTripById(999L, "test@example.com"))
                 .thenThrow(
                         new IllegalArgumentException("Trip not found")
                 );
 
         mockMvc.perform(
-                get("/api/trips/999")
-                        .header("Authorization", "Bearer " + token)
-        )
+                get("/api/trips/999"))
         .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldUpdateTripSuccessfully() throws Exception {
 
         request.setName("Updated Trip");
@@ -193,12 +180,12 @@ class TripControllerTest {
         when(tripService.updateTrip(
                 eq(1L),
                 any(TripRequest.class),
-                eq("rosmary@gmail.com")
+                eq("test@example.com")
         )).thenReturn(updatedResponse);
 
         mockMvc.perform(
                 put("/api/trips/1")
-                        .header("Authorization", "Bearer " + token)
+                        .with(csrf())
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(request))
         )
@@ -209,20 +196,21 @@ class TripControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldDeleteTripSuccessfully() throws Exception {
 
         doNothing()
                 .when(tripService)
-                .deleteTrip(1L, "rosmary@gmail.com");
+                .deleteTrip(1L, "test@example.com");
 
         mockMvc.perform(
                 delete("/api/trips/1")
-                        .header("Authorization", "Bearer " + token)
-        )
+                .with(csrf()))
         .andExpect(status().isNoContent());
     }
 
     @Test
+    @WithMockUser(username = "test@example.com")
     void shouldReturnNotFoundWhenDeletingNonExistingTrip()
             throws Exception {
 
@@ -230,12 +218,11 @@ class TripControllerTest {
                 new IllegalArgumentException("Trip not found")
         )
         .when(tripService)
-        .deleteTrip(999L, "rosmary@gmail.com");
+        .deleteTrip(999L, "test@example.com");
 
         mockMvc.perform(
                 delete("/api/trips/999")
-                        .header("Authorization", "Bearer " + token)
-        )
+                .with(csrf()))
         .andExpect(status().isNotFound());
     }
 

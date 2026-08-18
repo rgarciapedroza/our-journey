@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ourjourney.backend.dto.AddTripMemberRequest;
 import com.ourjourney.backend.dto.TripMemberResponse;
+import com.ourjourney.backend.dto.UserSearchResponse;
 import com.ourjourney.backend.service.TripMemberService;
 
 import jakarta.validation.Valid;
@@ -27,6 +28,21 @@ public class TripMemberController {
 
         return ResponseEntity.ok(
                 tripMemberService.getMembers(tripId)
+        );
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserSearchResponse>> searchAvailableUsers(
+            @PathVariable Long tripId,
+            @RequestParam String query,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                tripMemberService.searchAvailableUsers(
+                        tripId,
+                        query,
+                        authentication.getName()
+                )
         );
     }
 

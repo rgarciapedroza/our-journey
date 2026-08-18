@@ -1,6 +1,8 @@
 package com.ourjourney.backend.service.impl;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
 
 import javax.crypto.SecretKey;
 
@@ -17,17 +19,26 @@ import io.jsonwebtoken.security.Keys;
 public class JwtServiceImpl implements JwtService{
 
     private final SecretKey secretKey;
+    private final long expirationMs;
 
-    public JwtServiceImpl(@Value("${jwt.secret}") String secret) {
+    public JwtServiceImpl(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration-ms:86400000}") long expirationMs
+    ) {
         this.secretKey = Keys.hmacShaKeyFor(
                 secret.getBytes(StandardCharsets.UTF_8)
         );
+        this.expirationMs = expirationMs;
     }
 
     @Override
     public String generateToken(String email) {
+        Instant issuedAt = Instant.now();
+
         return Jwts.builder()
                 .subject(email)
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(issuedAt.plusMillis(expirationMs)))
                 .signWith(secretKey)
                 .compact();
     }
