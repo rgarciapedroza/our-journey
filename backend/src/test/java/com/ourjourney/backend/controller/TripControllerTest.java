@@ -28,6 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ourjourney.backend.dto.TripRequest;
 import com.ourjourney.backend.dto.TripResponse;
+import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.TripService;
 
@@ -46,6 +47,9 @@ class TripControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     private TripRequest request;
     private TripResponse tripResponse;
