@@ -9,6 +9,7 @@ import TripDetailPage from "./pages/TripDetailPage";
 import CreateTripPage from "./pages/CreateTripPage";
 import EditTripPage from "./pages/EditTripPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import TripGalleryPage from "./components/TripPhotoGallery";
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                         <Route path="/trips/:id" element={<TripDetailPage />} />
                         <Route path="/trips/new" element={<CreateTripPage />} />
                         <Route path="/trips/:id/edit" element={<EditTripPage />} />
+                        <Route path="/trips/:id/gallery" element={<TripGalleryPage />} />
                     </Route>
                 </Route>
 

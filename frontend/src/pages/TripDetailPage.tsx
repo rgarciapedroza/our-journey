@@ -18,6 +18,9 @@ import type {
 } from "../types/trip";
 
 import styles from "../styles/TripDetailPage.module.css";
+import { formatTripDate } from "../utils/date";
+
+import PhotoGallery from "../components/PhotoGallery";
 
 function TripDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -418,7 +421,9 @@ function TripDetailPage() {
                             <svg className={styles.dateIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span>{trip.startDate} — {trip.endDate}</span>
+                            <span>
+                                {formatTripDate(trip.startDate)} — {formatTripDate(trip.endDate)}
+                            </span>
                         </div>
 
                         <div className={styles.divider}></div>
@@ -427,6 +432,23 @@ function TripDetailPage() {
                             <h2 className={styles.sectionTitle}>About this trip</h2>
                             <p className={styles.description}>{trip.description}</p>
                         </div>
+
+                        <div className={styles.divider}></div>
+
+                        <div className={styles.photoSection}>
+                            <div className={styles.sectionHeader}>
+                                <h3 className={styles.sectionTitle}>Photos</h3>
+                                <Link to={`/trips/${trip.id}/gallery`} className={styles.seeAllLink}>
+                                    See All
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </Link>
+                            </div>
+                            <PhotoGallery tripId={trip.id} maxDisplay={4} />
+                        </div>
+
+                        <div className={styles.divider}></div>
 
                         <div className={styles.membersSection}>
                             <div className={styles.membersHeader}>

@@ -1,0 +1,362 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.closeButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.closeButton svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.counter {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.photoContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 4rem 2rem 7rem;
+    touch-action: pan-y;
+}
+
+.mainImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.mainImage.zoomed {
+    transform: scale(1.4);
+}
+
+.navButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.navButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.navButton svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.navLeft {
+    left: 0.5rem;
+}
+
+.navRight {
+    right: 0.5rem;
+}
+
+.bottomInfo {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 1.5rem 3rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.infoContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.uploaderInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.uploaderAvatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.uploaderAvatarPlaceholder {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8e92 0%, #ff6b6b 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.uploaderName {
+    display: block;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.uploadDate {
+    display: block;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.caption {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    cursor: pointer;
+}
+
+.editHint {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+}
+
+.captionEdit {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.captionInput {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.4rem 0.6rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.9rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.captionInput:focus {
+    border-color: #ff8e92;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.captionInput::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.captionSaveButton {
+    padding: 0.3rem 0.8rem;
+    background: linear-gradient(135deg, #ff8e92 0%, #ff6b6b 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.captionSaveButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff7f84 0%, #f2555c 100%);
+    transform: scale(1.02);
+}
+
+.captionSaveButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.captionCancelButton {
+    padding: 0.3rem 0.8rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    font-size: 0.813rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.captionCancelButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.addCaptionButton {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.875rem;
+    font-style: italic;
+    cursor: pointer;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: all 0.2s ease;
+}
+
+.addCaptionButton:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.deleteButton {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 59, 48, 0.2);
+    color: #ff3b30;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 0.75rem;
+    font-size: 0.813rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    white-space: nowrap;
+}
+
+.deleteButton:hover {
+    background: rgba(255, 59, 48, 0.3);
+    transform: scale(1.02);
+}
+
+.deleteButton:active {
+    transform: scale(0.97);
+}
+
+.deleteButtonConfirm {
+    background: #ff3b30 !important;
+    color: white !important;
+    border-color: #ff3b30 !important;
+    animation: pulse 0.6s ease-in-out infinite;
+}
+
+.deleteButton svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+.progressBar {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.5rem;
+}
+
+.progressDot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    transition: all 0.3s ease;
+}
+
+.progressDotActive {
+    background: white;
+    width: 1.25rem;
+    border-radius: 0.25rem;
+}
