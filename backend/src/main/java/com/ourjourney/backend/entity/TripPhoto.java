@@ -1,6 +1,7 @@
 package com.ourjourney.backend.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,7 +48,7 @@ public class TripPhoto {
 
     @PrePersist
     protected void onCreate(){
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public void updateCaption(String caption) {

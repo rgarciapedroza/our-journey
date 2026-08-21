@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class TripPhotoControllerTest {
     @Test
     @WithMockUser(username = "member@example.com")
     void shouldReturnTripPhotosForAuthenticatedMember() throws Exception {
-        LocalDateTime createdAt = LocalDateTime.of(2026, 8, 20, 12, 0);
+        Instant createdAt = Instant.parse("2026-08-20T12:00:00Z");
         TripPhotoResponse photo = TripPhotoResponse.builder()
                 .id(5L)
                 .imageUrl("https://example.com/signed-photo")
@@ -113,7 +113,7 @@ class TripPhotoControllerTest {
                 .caption("First day")
                 .uploadedById(2L)
                 .uploadedByName("Rosmary")
-                .createdAt(LocalDateTime.of(2026, 8, 20, 13, 0))
+                .createdAt(Instant.parse("2026-08-20T13:00:00Z"))
                 .build();
 
         when(tripPhotoService.uploadPhoto(

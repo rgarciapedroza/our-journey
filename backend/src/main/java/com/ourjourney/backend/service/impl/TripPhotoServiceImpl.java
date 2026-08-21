@@ -1,6 +1,7 @@
 package com.ourjourney.backend.service.impl;
 
 import java.util.List;
+import java.time.ZoneOffset;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -95,7 +96,7 @@ public class TripPhotoServiceImpl implements TripPhotoService {
                 .uploadedById(photo.getUploadedBy().getId())
                 .uploadedByName(photo.getUploadedBy().getName())
                 .uploadedByProfilePicture(photo.getUploadedBy().getProfilePicture())
-                .createdAt(photo.getCreatedAt())
+                .createdAt(photo.getCreatedAt().toInstant(ZoneOffset.UTC))
                 .build();
     }
 }

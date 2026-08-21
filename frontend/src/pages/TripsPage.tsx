@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getTrips } from "../api/trips";
 import type { Trip } from "../types/trip";
 import styles from "../styles/TripsPage.module.css";
+import { formatTripDate } from "../utils/date";
 
 function TripsPage() {
     const [trips, setTrips] = useState<Trip[]>([]);
@@ -111,7 +112,7 @@ function TripsPage() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
                                             <span className={styles.date}>
-                                                {trip.startDate} - {trip.endDate}
+                                                {formatTripDate(trip.startDate)} — {formatTripDate(trip.endDate)}
                                             </span>
                                         </div>
                                         

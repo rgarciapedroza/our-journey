@@ -1,6 +1,6 @@
 package com.ourjourney.backend.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +17,6 @@ public class TripPhotoResponse {
     private final Long uploadedById;
     private final String uploadedByName;
     private final String uploadedByProfilePicture;
-    private final LocalDateTime createdAt;
+    private final Instant createdAt;
     
 }

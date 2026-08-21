@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +100,7 @@ class TripPhotoServiceImplTest {
         assertEquals(user.getId(), response.getUploadedById());
         assertEquals(user.getName(), response.getUploadedByName());
         assertEquals(user.getProfilePicture(), response.getUploadedByProfilePicture());
-        assertEquals(createdAt, response.getCreatedAt());
+        assertEquals(createdAt.toInstant(ZoneOffset.UTC), response.getCreatedAt());
     }
 
     @Test
@@ -149,7 +150,7 @@ class TripPhotoServiceImplTest {
     void shouldStoreBlankCaptionAsNull() {
         stubAuthorizedUpload();
         when(tripPhotoRepository.save(any(TripPhoto.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> savedCopy(invocation.getArgument(0)));
         when(tripPhotoStorageService.createSignedUrl(STORAGE_PATH))
                 .thenReturn(SIGNED_URL);
 
