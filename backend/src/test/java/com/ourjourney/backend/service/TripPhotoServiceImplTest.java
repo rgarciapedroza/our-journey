@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ import com.ourjourney.backend.entity.TripMember;
 import com.ourjourney.backend.entity.TripMemberRole;
 import com.ourjourney.backend.entity.TripPhoto;
 import com.ourjourney.backend.entity.User;
+import com.ourjourney.backend.exception.ForbiddenException;
+import com.ourjourney.backend.exception.ResourceNotFoundException;
 import com.ourjourney.backend.repository.TripPhotoRepository;
 import com.ourjourney.backend.service.impl.TripPhotoServiceImpl;
 
@@ -37,6 +40,7 @@ import com.ourjourney.backend.service.impl.TripPhotoServiceImpl;
 class TripPhotoServiceImplTest {
 
     private static final Long TRIP_ID = 1L;
+    private static final Long PHOTO_ID = 10L;
     private static final String USER_EMAIL = "member@example.com";
     private static final String STORAGE_PATH = "trips/1/photo.jpg";
     private static final String SIGNED_URL = "https://storage.example/signed-photo";
@@ -213,6 +217,111 @@ class TripPhotoServiceImplTest {
         assertSame(databaseError, thrown);
         assertEquals(1, thrown.getSuppressed().length);
         assertSame(cleanupError, thrown.getSuppressed()[0]);
+    }
+
+    @Test
+    void shouldDeletePhotoWhenCurrentUserIsUploader() {
+        TripPhoto photo = savedPhoto(
+                "Sunset",
+                LocalDateTime.of(2026, 8, 20, 10, 30)
+        );
+        when(tripAuthorizationService.getCurrentMember(TRIP_ID, USER_EMAIL))
+                .thenReturn(membership);
+        when(tripPhotoRepository.findByIdAndTripId(PHOTO_ID, TRIP_ID))
+                .thenReturn(Optional.of(photo));
+
+        tripPhotoService.deletePhoto(TRIP_ID, PHOTO_ID, USER_EMAIL);
+
+        verify(tripPhotoStorageService).delete(STORAGE_PATH);
+        verify(tripPhotoRepository).delete(photo);
+    }
+
+    @Test
+    void shouldRejectPhotoDeletionWhenCurrentUserIsNotUploader() {
+        User anotherUser = User.builder()
+                .id(99L)
+                .name("Another member")
+                .email("another@example.com")
+                .build();
+        TripPhoto photo = TripPhoto.builder()
+                .id(PHOTO_ID)
+                .trip(trip)
+                .uploadedBy(anotherUser)
+                .storagePath(STORAGE_PATH)
+                .build();
+        when(tripAuthorizationService.getCurrentMember(TRIP_ID, USER_EMAIL))
+                .thenReturn(membership);
+        when(tripPhotoRepository.findByIdAndTripId(PHOTO_ID, TRIP_ID))
+                .thenReturn(Optional.of(photo));
+
+        ForbiddenException exception = assertThrows(
+                ForbiddenException.class,
+                () -> tripPhotoService.deletePhoto(TRIP_ID, PHOTO_ID, USER_EMAIL)
+        );
+
+        assertEquals(
+                "Only the uploader of this photo can delete it",
+                exception.getMessage()
+        );
+        verify(tripPhotoStorageService, never()).delete(any());
+        verify(tripPhotoRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldRejectDeletionWhenPhotoDoesNotBelongToTrip() {
+        when(tripAuthorizationService.getCurrentMember(TRIP_ID, USER_EMAIL))
+                .thenReturn(membership);
+        when(tripPhotoRepository.findByIdAndTripId(PHOTO_ID, TRIP_ID))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> tripPhotoService.deletePhoto(TRIP_ID, PHOTO_ID, USER_EMAIL)
+        );
+
+        assertEquals("Trip Photo not found", exception.getMessage());
+        verify(tripPhotoStorageService, never()).delete(any());
+        verify(tripPhotoRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldNotDeletePhotoWhenTripAuthorizationFails() {
+        IllegalArgumentException authorizationError =
+                new IllegalArgumentException("You are not a member of this trip");
+        when(tripAuthorizationService.getCurrentMember(TRIP_ID, USER_EMAIL))
+                .thenThrow(authorizationError);
+
+        IllegalArgumentException thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> tripPhotoService.deletePhoto(TRIP_ID, PHOTO_ID, USER_EMAIL)
+        );
+
+        assertSame(authorizationError, thrown);
+        verify(tripPhotoRepository, never()).findByIdAndTripId(any(), any());
+        verify(tripPhotoStorageService, never()).delete(any());
+        verify(tripPhotoRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldKeepDatabaseRecordWhenStorageDeletionFails() {
+        RuntimeException storageError = new RuntimeException("Storage unavailable");
+        TripPhoto photo = savedPhoto(
+                "Sunset",
+                LocalDateTime.of(2026, 8, 20, 10, 30)
+        );
+        when(tripAuthorizationService.getCurrentMember(TRIP_ID, USER_EMAIL))
+                .thenReturn(membership);
+        when(tripPhotoRepository.findByIdAndTripId(PHOTO_ID, TRIP_ID))
+                .thenReturn(Optional.of(photo));
+        doThrow(storageError).when(tripPhotoStorageService).delete(STORAGE_PATH);
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> tripPhotoService.deletePhoto(TRIP_ID, PHOTO_ID, USER_EMAIL)
+        );
+
+        assertSame(storageError, thrown);
+        verify(tripPhotoRepository, never()).delete(any());
     }
 
     private void stubAuthorizedUpload() {

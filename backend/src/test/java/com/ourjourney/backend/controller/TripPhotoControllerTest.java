@@ -1,8 +1,10 @@
 package com.ourjourney.backend.controller;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.ourjourney.backend.config.SecurityConfig;
 import com.ourjourney.backend.dto.TripPhotoResponse;
+import com.ourjourney.backend.exception.ForbiddenException;
+import com.ourjourney.backend.exception.ResourceNotFoundException;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.TripPhotoService;
@@ -143,5 +147,74 @@ class TripPhotoControllerTest {
                 org.mockito.ArgumentMatchers.eq("First day"),
                 org.mockito.ArgumentMatchers.eq("member@example.com")
         );
+    }
+
+    @Test
+    void shouldRejectPhotoDeletionWithoutAuthentication() throws Exception {
+        mockMvc.perform(delete(
+                        "/api/trips/{tripId}/photos/{photoId}",
+                        10L,
+                        5L
+                ))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void shouldDeletePhotoForUploader() throws Exception {
+        mockMvc.perform(delete(
+                        "/api/trips/{tripId}/photos/{photoId}",
+                        10L,
+                        5L
+                ))
+                .andExpect(status().isNoContent());
+
+        verify(tripPhotoService).deletePhoto(
+                10L,
+                5L,
+                "member@example.com"
+        );
+    }
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void shouldReturnForbiddenWhenMemberIsNotUploader() throws Exception {
+        doThrow(new ForbiddenException(
+                "Only the uploader of this photo can delete it"
+        )).when(tripPhotoService).deletePhoto(
+                10L,
+                5L,
+                "member@example.com"
+        );
+
+        mockMvc.perform(delete(
+                        "/api/trips/{tripId}/photos/{photoId}",
+                        10L,
+                        5L
+                ))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message")
+                        .value("Only the uploader of this photo can delete it"))
+                .andExpect(jsonPath("$.path")
+                        .value("/api/trips/10/photos/5"));
+    }
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void shouldReturnNotFoundWhenPhotoDoesNotExistInTrip() throws Exception {
+        doThrow(new ResourceNotFoundException("Trip Photo not found"))
+                .when(tripPhotoService).deletePhoto(
+                        10L,
+                        5L,
+                        "member@example.com"
+                );
+
+        mockMvc.perform(delete(
+                        "/api/trips/{tripId}/photos/{photoId}",
+                        10L,
+                        5L
+                ))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Trip Photo not found"));
     }
 }
