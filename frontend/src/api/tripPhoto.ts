@@ -28,3 +28,15 @@ export async function uploadTripPhoto(
             }
         );
     }
+
+export async function deletePhoto(
+    tripId: number,
+    photoId: number,
+): Promise<void>{
+        await apiFetch<void>(
+            `/api/trips/${tripId}/photos/${photoId}`,
+            {
+                method: "DELETE",
+            }
+        );
+    }

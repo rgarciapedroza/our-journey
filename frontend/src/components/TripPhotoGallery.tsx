@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getTrip } from "../api/trips";
-import { getTripPhotos, uploadTripPhoto } from "../api/tripPhoto";
+import { getTripPhotos, uploadTripPhoto, deletePhoto } from "../api/tripPhoto";
 import type { Trip } from "../types/trip";
 import type { TripPhoto } from "../types/tripPhoto";
 import PhotoModal from "../components/PhotoModal";
 import styles from "../styles/TripPhotoGallery.module.css";
+import { useAuth } from "../context/AuthContext";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function TripGalleryPage() {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +120,17 @@ function TripGalleryPage() {
         } finally {
             setUploading(false);
         }
+    }
+
+    async function handleDeletePhoto(photoId: number): Promise<void>{
+        if (!id){
+            return;
+        }
+        await deletePhoto(Number(id), photoId);
+
+        setPhotos((currentPhotos) => currentPhotos.filter((photo => photo.id !== photoId)))
+
+        setSelectedPhotoIndex(null);
     }
 
     if (loading) {
@@ -265,6 +278,8 @@ function TripGalleryPage() {
                 <PhotoModal
                     photos={photos}
                     initialIndex={selectedPhotoIndex}
+                    currentUserId={user?.id}
+                    onDelete={handleDeletePhoto}
                     onClose={() => setSelectedPhotoIndex(null)}
                 />
             )}

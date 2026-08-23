@@ -7,12 +7,16 @@ import styles from "../styles/PhotoModal.module.css";
 interface PhotoModalProps {
     photos: TripPhoto[];
     initialIndex: number;
+    currentUserId?: number;
+    onDelete: (photoId: number) => Promise<void>;
     onClose: () => void;
 }
 
 function PhotoModal({
     photos,
     initialIndex,
+    currentUserId,
+    onDelete,
     onClose,
 }: PhotoModalProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -21,6 +25,12 @@ function PhotoModal({
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
     const currentPhoto = photos[currentIndex];
+
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
+    const canDelete = currentUserId === currentPhoto?.uploadedById;
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
@@ -50,6 +60,11 @@ function PhotoModal({
             document.body.style.overflow = "";
         };
     }, [currentIndex, onClose, photos.length]);
+
+    useEffect(() => {
+        setConfirmingDelete(false);
+        setDeleteError(null);
+    }, [currentIndex]);
 
     function handleTouchStart(event: TouchEvent) {
         setTouchStart(event.targetTouches[0].clientX);
@@ -83,6 +98,29 @@ function PhotoModal({
 
     if (!currentPhoto) {
         return null;
+    }
+
+    async function handleDelete(){
+        if (!currentPhoto || deleting) {
+            return;
+        }
+
+        if (!confirmingDelete) {
+            setConfirmingDelete(true);
+            setDeleteError(null);
+            return;
+        }
+
+        try{
+            setDeleting(true);
+            setDeleteError(null);
+            await onDelete(currentPhoto.id);
+        } catch{
+            setDeleteError("Could not delete the photo. Please try again");
+            setConfirmingDelete(false);
+        } finally{
+            setDeleting(false);
+        }
     }
 
     return (
@@ -195,6 +233,55 @@ function PhotoModal({
                         </p>
                     )}
                 </div>
+
+                {canDelete && (
+                <div className={styles.deleteActions}>
+                    {deleteError && (
+                        <span className={styles.deleteError}>
+                            {deleteError}
+                        </span>
+                    )}
+
+                    <button
+                        type="button"
+                        className={`${styles.deleteButton} ${
+                            confirmingDelete ? styles.deleteButtonConfirm : ""
+                        }`}
+                        onClick={handleDelete}
+                        disabled={deleting}
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 7h12m-10 0 1 13h6l1-13m-5 4v5m3-5v5m-4-9V4h4v3"
+                            />
+                        </svg>
+
+                        {deleting
+                            ? "Deleting..."
+                            : confirmingDelete
+                                ? "Confirm delete"
+                                : "Delete"}
+                    </button>
+
+                    {confirmingDelete && !deleting && (
+                        <button
+                            type="button"
+                            className={styles.deleteCancelButton}
+                            onClick={() => setConfirmingDelete(false)}
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
+            )}
             </div>
 
             <div className={styles.progressBar} aria-hidden="true">
