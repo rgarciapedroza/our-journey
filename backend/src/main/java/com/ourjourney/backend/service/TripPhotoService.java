@@ -19,4 +19,10 @@ public interface TripPhotoService {
             String caption,
             String currentUserEmail
     );
+
+    void deletePhoto(
+        Long tripId,
+        Long photoId,
+        String currentUserEmail
+    );
 }

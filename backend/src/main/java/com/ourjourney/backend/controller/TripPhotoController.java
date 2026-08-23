@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,5 +42,16 @@ public class TripPhotoController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(tripPhotoService.uploadPhoto(tripId, file, caption, authentication.getName()));
+    }
+
+    @DeleteMapping("/{photoId}")
+    public ResponseEntity<Void> deletePhoto(
+        @PathVariable Long tripId,
+        @PathVariable Long photoId,
+        Authentication authentication
+    ){
+        tripPhotoService.deletePhoto(tripId, photoId, authentication.getName());
+    
+        return ResponseEntity.noContent().build();
     }
 }

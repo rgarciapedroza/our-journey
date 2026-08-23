@@ -1,6 +1,7 @@
 package com.ourjourney.backend.service.impl;
 
 import java.util.List;
+import java.util.Objects;
 import java.time.ZoneOffset;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +11,8 @@ import com.ourjourney.backend.dto.StoredPhoto;
 import com.ourjourney.backend.dto.TripPhotoResponse;
 import com.ourjourney.backend.entity.TripMember;
 import com.ourjourney.backend.entity.TripPhoto;
+import com.ourjourney.backend.exception.ForbiddenException;
+import com.ourjourney.backend.exception.ResourceNotFoundException;
 import com.ourjourney.backend.repository.TripPhotoRepository;
 import com.ourjourney.backend.service.TripAuthorizationService;
 import com.ourjourney.backend.service.TripPhotoService;
@@ -98,5 +101,29 @@ public class TripPhotoServiceImpl implements TripPhotoService {
                 .uploadedByProfilePicture(photo.getUploadedBy().getProfilePicture())
                 .createdAt(photo.getCreatedAt().toInstant(ZoneOffset.UTC))
                 .build();
+    }
+
+    @Override
+    public void deletePhoto(Long tripId, Long photoId, String currentUserEmail) {
+        TripMember currentMember = tripAuthorizationService.getCurrentMember(tripId, currentUserEmail);
+        
+        TripPhoto photo = tripPhotoRepository
+        .findByIdAndTripId(photoId, tripId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "Trip Photo not found"
+        ));
+        
+        boolean isUploader = Objects.equals(
+            photo.getUploadedBy().getId(),
+            currentMember.getUser().getId());
+
+        if (!isUploader){
+            throw new ForbiddenException(
+                "Only the uploader of this photo can delete it"
+            );
+        }
+
+        tripPhotoStorageService.delete(photo.getStoragePath());
+        tripPhotoRepository.delete(photo);
     }
 }
