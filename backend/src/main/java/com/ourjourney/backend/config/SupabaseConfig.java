@@ -17,4 +17,7 @@ public class SupabaseConfig {
 
     @Value("${supabase.bucket}")
     private String bucket;
+
+    @Value("${supabase.trip-photos-bucket}")
+    private String tripPhotosBucket;
 }

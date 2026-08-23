@@ -692,6 +692,46 @@
     padding: 0.5rem;
 }
 
+/* ========== PHOTO SECTION ========== */
+.photoSection {
+    margin: 0.5rem 0 1rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.seeAllLink {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #007aff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.seeAllLink:hover {
+    background: rgba(0, 122, 255, 0.1);
+}
+
+.seeAllLink svg {
+    width: 1rem;
+    height: 1rem;
+}
+
 /* Actions */
 .actions {
     display: flex;

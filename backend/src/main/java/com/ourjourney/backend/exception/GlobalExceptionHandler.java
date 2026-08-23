@@ -50,4 +50,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status).body(body);
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbidden(
+        ForbiddenException exception,
+        HttpServletRequest request
+    ){
+        return buildResponse(HttpStatus.FORBIDDEN, exception.getMessage(), request);
+    }
 }
