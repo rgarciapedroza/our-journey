@@ -28,5 +28,4 @@ public class TripRequest {
     @NotNull
     private LocalDate endDate;
 
-    private String coverImage;
 }
