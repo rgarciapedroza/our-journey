@@ -1,6 +1,7 @@
 package com.ourjourney.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -17,9 +18,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import com.ourjourney.backend.dto.TripRequest;
 import com.ourjourney.backend.dto.TripResponse;
+import com.ourjourney.backend.dto.StoredPhoto;
 import com.ourjourney.backend.entity.Trip;
 import com.ourjourney.backend.entity.TripMember;
 import com.ourjourney.backend.entity.TripMemberRole;
@@ -40,6 +43,9 @@ class TripServiceImplTest {
 
     @Mock
     private TripMemberRepository tripMemberRepository;
+
+    @Mock
+    private TripCoverStorageService tripCoverStorageService;
 
     @InjectMocks
     private TripServiceImpl tripService;
@@ -71,7 +77,6 @@ class TripServiceImplTest {
         request.setEndDate(
                 LocalDate.of(2027, 1, 2)
         );
-        request.setCoverImage("Maspalomas.jpg");
     }
 
     @Test
@@ -382,6 +387,126 @@ class TripServiceImplTest {
     }
 
     @Test
+    void shouldUploadTripCoverForOwner() {
+        String email = "owner@example.com";
+        User ownerUser = User.builder().id(1L).email(email).build();
+        TripMember owner = TripMember.builder()
+                .trip(trip)
+                .user(ownerUser)
+                .role(TripMemberRole.OWNER)
+                .build();
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "cover.jpg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+        String storagePath = "trips/1/cover/new.jpg";
+        String signedUrl = "https://example.supabase.co/signed-cover";
+
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(ownerUser));
+        when(tripMemberRepository.findByTripIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(owner));
+        when(tripCoverStorageService.upload(1L, file))
+                .thenReturn(new StoredPhoto(storagePath));
+        when(tripRepository.save(trip)).thenReturn(trip);
+        when(tripCoverStorageService.createSignedUrl(storagePath))
+                .thenReturn(signedUrl);
+
+        TripResponse response = tripService.uploadCover(1L, file, email);
+
+        assertEquals(storagePath, trip.getCoverImage());
+        assertEquals(signedUrl, response.getCoverImage());
+        verify(tripCoverStorageService).upload(1L, file);
+        verify(tripRepository).save(trip);
+    }
+
+    @Test
+    void shouldReplaceAndDeletePreviousManagedCover() {
+        String email = "owner@example.com";
+        String previousCover = "trips/1/cover/old.jpg";
+        String newCover = "trips/1/cover/new.jpg";
+        trip.setCoverImage(previousCover);
+
+        User ownerUser = User.builder().id(1L).email(email).build();
+        TripMember owner = TripMember.builder()
+                .trip(trip)
+                .user(ownerUser)
+                .role(TripMemberRole.OWNER)
+                .build();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "cover.jpg", "image/jpeg", new byte[]{1}
+        );
+
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(ownerUser));
+        when(tripMemberRepository.findByTripIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(owner));
+        when(tripCoverStorageService.upload(1L, file))
+                .thenReturn(new StoredPhoto(newCover));
+        when(tripRepository.save(trip)).thenReturn(trip);
+        when(tripCoverStorageService.createSignedUrl(newCover))
+                .thenReturn("https://example.com/new-cover");
+
+        tripService.uploadCover(1L, file, email);
+
+        verify(tripCoverStorageService).delete(previousCover);
+    }
+
+    @Test
+    void shouldNotAllowMemberToUploadTripCover() {
+        String email = "member@example.com";
+        User memberUser = User.builder().id(2L).email(email).build();
+        TripMember member = TripMember.builder()
+                .trip(trip)
+                .user(memberUser)
+                .role(TripMemberRole.MEMBER)
+                .build();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "cover.jpg", "image/jpeg", new byte[]{1}
+        );
+
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(memberUser));
+        when(tripMemberRepository.findByTripIdAndUserId(1L, 2L))
+                .thenReturn(Optional.of(member));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> tripService.uploadCover(1L, file, email)
+        );
+
+        verify(tripCoverStorageService, never()).upload(any(), any());
+    }
+
+    @Test
+    void shouldDeleteTripCoverForOwner() {
+        String email = "owner@example.com";
+        String storagePath = "trips/1/cover/current.jpg";
+        trip.setCoverImage(storagePath);
+
+        User ownerUser = User.builder().id(1L).email(email).build();
+        TripMember owner = TripMember.builder()
+                .trip(trip)
+                .user(ownerUser)
+                .role(TripMemberRole.OWNER)
+                .build();
+
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(ownerUser));
+        when(tripMemberRepository.findByTripIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(owner));
+        when(tripRepository.save(trip)).thenReturn(trip);
+
+        tripService.deleteCover(1L, email);
+
+        assertNull(trip.getCoverImage());
+        verify(tripRepository).save(trip);
+        verify(tripCoverStorageService).delete(storagePath);
+    }
+
+    @Test
     void shouldNotAllowMemberToUpdateTrip() {
 
         String currentUserEmail = "member@example.com";
@@ -427,6 +552,8 @@ class TripServiceImplTest {
     void shouldDeleteTripSuccessfully() {
 
         String currentUserEmail = "test@example.com";
+        String coverPath = "trips/1/cover/current.jpg";
+        trip.setCoverImage(coverPath);
 
         User user = User.builder()
                 .id(1L)
@@ -441,8 +568,8 @@ class TripServiceImplTest {
                 .role(TripMemberRole.OWNER)
                 .build();
 
-        when(tripRepository.existsById(1L))
-                .thenReturn(true);
+        when(tripRepository.findById(1L))
+                .thenReturn(Optional.of(trip));
 
         when(userRepository.findByEmail(currentUserEmail))
                 .thenReturn(Optional.of(user));
@@ -458,7 +585,7 @@ class TripServiceImplTest {
         );
 
         verify(tripRepository)
-                .existsById(1L);
+                .findById(1L);
 
         verify(userRepository)
                 .findByEmail(currentUserEmail);
@@ -471,6 +598,9 @@ class TripServiceImplTest {
 
         verify(tripRepository)
                 .deleteById(1L);
+
+        verify(tripCoverStorageService)
+                .delete(coverPath);
     }
 
     @Test
@@ -491,8 +621,8 @@ class TripServiceImplTest {
                 .role(TripMemberRole.MEMBER)
                 .build();
 
-        when(tripRepository.existsById(1L))
-                .thenReturn(true);
+        when(tripRepository.findById(1L))
+                .thenReturn(Optional.of(trip));
 
         when(userRepository.findByEmail(currentUserEmail))
                 .thenReturn(Optional.of(user));
@@ -517,8 +647,8 @@ class TripServiceImplTest {
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingTrip() {
 
-        when(tripRepository.existsById(999L))
-                .thenReturn(false);
+        when(tripRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         assertThrows(
                 IllegalArgumentException.class,

@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -64,8 +66,6 @@ class TripControllerTest {
         request.setDestination("Gran Canaria and Tenerife");
         request.setStartDate(LocalDate.of(2026, 12, 30));
         request.setEndDate(LocalDate.of(2027, 1, 2));
-        request.setCoverImage("Maspalomas.jpg");
-
         tripResponse = new TripResponse();
         tripResponse.setId(1L);
         tripResponse.setName("The Canary Islands 2027");
@@ -207,6 +207,52 @@ class TripControllerTest {
                 delete("/api/trips/1")
                 .with(csrf()))
         .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "test@example.com")
+    void shouldUploadTripCover() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "cover.jpg",
+                "image/jpeg",
+                new byte[]{1, 2, 3}
+        );
+
+        when(tripService.uploadCover(
+                eq(1L),
+                any(MockMultipartFile.class),
+                eq("test@example.com")
+        )).thenReturn(tripResponse);
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request
+                        .MockMvcRequestBuilders.multipart("/api/trips/1/cover")
+                        .file(file)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .with(csrf())
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    @WithMockUser(username = "test@example.com")
+    void shouldDeleteTripCover() throws Exception {
+        doNothing()
+                .when(tripService)
+                .deleteCover(1L, "test@example.com");
+
+        mockMvc.perform(
+                delete("/api/trips/1/cover")
+                        .with(csrf())
+        )
+        .andExpect(status().isNoContent());
+
+        verify(tripService).deleteCover(1L, "test@example.com");
     }
 
     @Test
