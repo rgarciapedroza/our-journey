@@ -11,6 +11,10 @@ COPY src src
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
+# ---------- Test stage ----------
+FROM builder AS test
+
+RUN ./mvnw --batch-mode test
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
