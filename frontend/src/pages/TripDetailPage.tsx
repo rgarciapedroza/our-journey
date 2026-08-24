@@ -570,6 +570,15 @@ function TripDetailPage() {
                                             <div className={styles.memberInfo}>
                                                 <div className={styles.memberAvatar}>
                                                     {member.name?.charAt(0)?.toUpperCase() || '?'}
+                                                    {member.profilePicture && (
+                                                        <img
+                                                            src={member.profilePicture}
+                                                            alt={`${member.name || 'Participant'} profile`}
+                                                            onError={(event) => {
+                                                                event.currentTarget.style.display = "none";
+                                                            }}
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <div className={styles.memberName}>
