@@ -5,7 +5,7 @@ export interface Trip {
     destination: string;
     startDate: string;
     endDate: string;
-    coverImage: string;
+    coverImage: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -16,7 +16,6 @@ export interface TripRequest {
     destination: string;
     startDate: string;
     endDate: string;
-    coverImage?: string;
 }
 
 export interface TripMember {

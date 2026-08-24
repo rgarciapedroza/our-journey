@@ -1,11 +1,12 @@
-import { type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createTrip } from "../api/trips";
+import { createTrip, deleteTrip, uploadTripCover } from "../api/trips";
 import type { TripRequest } from "../types/trip";
 import styles from "../styles/CreateTripPage.module.css";
 
 function CreateTripPage() {
     const navigate = useNavigate();
+    const coverInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState<TripRequest>({
         name: "",
@@ -13,11 +14,20 @@ function CreateTripPage() {
         destination: "",
         startDate: "",
         endDate: "",
-        coverImage: "",
     });
 
+    const [coverFile, setCoverFile] = useState<File | null>(null);
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (coverPreview) {
+                URL.revokeObjectURL(coverPreview);
+            }
+        };
+    }, [coverPreview]);
 
     function handleChange(
         event: React.ChangeEvent<
@@ -32,6 +42,41 @@ function CreateTripPage() {
         }));
     }
 
+    function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+        if (!allowedTypes.includes(file.type)) {
+            setError("Choose a JPEG, PNG or WebP image.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError("The cover image must not exceed 5 MB.");
+            event.target.value = "";
+            return;
+        }
+
+        setError(null);
+        setCoverFile(file);
+        setCoverPreview(URL.createObjectURL(file));
+    }
+
+    function clearCoverSelection() {
+        setCoverFile(null);
+        setCoverPreview(null);
+
+        if (coverInputRef.current) {
+            coverInputRef.current.value = "";
+        }
+    }
+
     async function handleSubmit(
         event: FormEvent<HTMLFormElement>
     ) {
@@ -41,8 +86,22 @@ function CreateTripPage() {
         setLoading(true);
 
         try {
-            await createTrip(form);
-            navigate("/trips");
+            const createdTrip = await createTrip(form);
+
+            if (coverFile) {
+                try {
+                    await uploadTripCover(createdTrip.id, coverFile);
+                } catch (uploadError) {
+                    try {
+                        await deleteTrip(createdTrip.id);
+                    } catch (cleanupError) {
+                        console.error("Could not clean up incomplete trip", cleanupError);
+                    }
+                    throw uploadError;
+                }
+            }
+
+            navigate(`/trips/${createdTrip.id}`);
         } catch (error) {
             console.error(error);
             setError("Could not create the trip.");
@@ -169,27 +228,33 @@ function CreateTripPage() {
 
                     <div className={styles.formGroup}>
                         <label htmlFor="coverImage" className={styles.label}>
-                            Cover Image URL
+                            Cover image
                         </label>
                         <input
                             id="coverImage"
-                            name="coverImage"
-                            type="text"
-                            value={form.coverImage || ""}
-                            onChange={handleChange}
-                            placeholder="https://example.com/image.jpg"
-                            className={styles.input}
+                            ref={coverInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleCoverChange}
+                            className={styles.fileInput}
                         />
-                        {form.coverImage && (
+                        <span className={styles.fileHint}>
+                            JPEG, PNG or WebP. Maximum size: 5 MB.
+                        </span>
+                        {coverPreview && (
                             <div className={styles.imagePreview}>
-                                <img 
-                                    src={form.coverImage} 
+                                <img
+                                    src={coverPreview}
                                     alt="Cover preview"
                                     className={styles.previewImage}
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={clearCoverSelection}
+                                    className={styles.removeImageButton}
+                                >
+                                    Remove selected image
+                                </button>
                             </div>
                         )}
                     </div>
