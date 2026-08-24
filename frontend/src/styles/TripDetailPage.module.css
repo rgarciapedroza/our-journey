@@ -739,7 +739,7 @@
     flex-wrap: wrap;
 }
 
-.bookButton {
+.itineraryButton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -755,18 +755,19 @@
     transition: all 0.3s ease;
     flex: 1;
     min-width: 140px;
+    text-decoration: none;
 }
 
-.bookButton:hover {
+.itineraryButton:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(255, 142, 146, 0.4);
 }
 
-.bookButton:active {
+.itineraryButton:active {
     transform: translateY(0);
 }
 
-.bookIcon {
+.itineraryIcon {
     width: 1.25rem;
     height: 1.25rem;
 }
@@ -841,7 +842,7 @@
         flex-direction: column;
     }
     
-    .bookButton,
+    .itineraryButton,
     .secondaryButton {
         width: 100%;
     }

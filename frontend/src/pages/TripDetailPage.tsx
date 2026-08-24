@@ -609,12 +609,16 @@ function TripDetailPage() {
                         <div className={styles.divider}></div>
 
                         <div className={styles.actions}>
-                            <button className={styles.bookButton}>
-                                <svg className={styles.bookIcon} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <Link
+                                to={`/trips/${trip.id}/itinerary`}
+                                className={styles.itineraryButton}
+                            >
+                                <svg className={styles.itineraryIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 3v3m8-3v3M5 9h14M7 5h10a2 2 0 012 2v12H5V7a2 2 0 012-2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13h3m-3 3h6" />
                                 </svg>
-                                Itinerary
-                            </button>
+                                Open itinerary
+                            </Link>
                             
                             <Link to="/trips" className={styles.secondaryButton}>
                                 View all trips
