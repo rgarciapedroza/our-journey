@@ -1,0 +1,259 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 0 1rem;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid #edf2f7;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(12px);
+}
+
+.container {
+    max-width: 72rem;
+    height: 4rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #2d3748;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.brand:hover {
+    color: #ff6b73;
+}
+
+.brandIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: #ff8e92;
+}
+
+.brandText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.profileMenu {
+    position: relative;
+}
+
+.profileTrigger {
+    min-height: 2.75rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #334155;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profileTrigger:hover,
+.profileTrigger[aria-expanded="true"] {
+    background: #fff7f7;
+    border-color: #ffe0e1;
+}
+
+.profileTrigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 142, 146, 0.28);
+}
+
+.avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: white;
+    background: linear-gradient(135deg, #ff9da1, #ff6b73);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(255, 107, 115, 0.24);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.avatarImage {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.userName {
+    max-width: 10rem;
+    overflow: hidden;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chevron {
+    width: 1rem;
+    height: 1rem;
+    color: #94a3b8;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    right: 0;
+    width: 17rem;
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #edf2f7;
+    border-radius: 0.9rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+    animation: dropdownIn 0.16s ease-out;
+    transform-origin: top right;
+}
+
+.dropdownHeader {
+    padding: 0.65rem 0.75rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dropdownName,
+.dropdownEmail {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdownName {
+    color: #1e293b;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.dropdownEmail {
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.dropdownDivider {
+    height: 1px;
+    margin: 0 0.25rem 0.4rem;
+    background: #f1f5f9;
+}
+
+.dropdownItem {
+    width: 100%;
+    padding: 0.7rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: #475569;
+    background: transparent;
+    border: 0;
+    border-radius: 0.6rem;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 550;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.dropdownItem svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex: 0 0 auto;
+}
+
+.dropdownItem:hover,
+.dropdownItem:focus-visible {
+    color: #e85661;
+    background: #fff5f5;
+    outline: none;
+}
+
+.logoutItem {
+    color: #dc5962;
+}
+
+@keyframes dropdownIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dropdown,
+    .chevron {
+        animation: none;
+        transition: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 0.75rem;
+    }
+
+    .container {
+        height: 3.5rem;
+    }
+
+    .brandText {
+        font-size: 1.1rem;
+    }
+
+    .userName {
+        display: none;
+    }
+
+    .profileTrigger {
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .brandIcon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .brandText {
+        font-size: 0.95rem;
+    }
+
+    .avatar {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.75rem;
+    }
+
+    .dropdown {
+        width: min(17rem, calc(100vw - 1.5rem));
+    }
+}

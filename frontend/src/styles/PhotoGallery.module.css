@@ -1,0 +1,132 @@
+.galleryPreview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0.4rem;
+    aspect-ratio: 16/9;
+    max-height: 200px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #f7fafc;
+}
+
+.photoThumb {
+    position: relative;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    background: #edf2f7;
+    transition: all 0.2s ease;
+}
+
+.photoThumb:hover {
+    transform: scale(1.02);
+    z-index: 1;
+}
+
+.photoThumb:active {
+    transform: scale(0.98);
+}
+
+.thumbImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.photoOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.remainingCount {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.viewAllButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 2px dashed #cbd5e0;
+    border-radius: 0.75rem;
+    color: #718096;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    grid-column: 1 / -1;
+}
+
+.viewAllButton:hover {
+    border-color: #ff8e92;
+    color: #ff6b6b;
+    background: rgba(255, 142, 146, 0.08);
+}
+
+.viewAllButton svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.emptyButton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 2px dashed #cbd5e0;
+    border-radius: 0.75rem;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.emptyButton:hover {
+    border-color: #ff8e92;
+    color: #ff6b6b;
+    background: rgba(255, 142, 146, 0.08);
+}
+
+.emptyButton svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+.emptyButton span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f7fafc 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
