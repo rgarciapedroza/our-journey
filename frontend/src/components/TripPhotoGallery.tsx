@@ -6,7 +6,7 @@ import type { Trip } from "../types/trip";
 import type { TripPhoto } from "../types/tripPhoto";
 import PhotoModal from "../components/PhotoModal";
 import styles from "../styles/TripPhotoGallery.module.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -16,6 +16,7 @@ function TripGalleryPage() {
     const { user } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const previewUrlRef = useRef<string | null>(null);
 
     const [trip, setTrip] = useState<Trip | null>(null);
     const [photos, setPhotos] = useState<TripPhoto[]>([]);
@@ -59,41 +60,48 @@ function TripGalleryPage() {
     }, [id]);
 
     useEffect(() => {
-        if (!selectedFile) {
-            setPreviewUrl(null);
-            return;
+        return () => {
+            if (previewUrlRef.current) {
+                URL.revokeObjectURL(previewUrlRef.current);
+            }
+        };
+    }, []);
+
+    function updateSelectedFile(file: File | null) {
+        if (previewUrlRef.current) {
+            URL.revokeObjectURL(previewUrlRef.current);
         }
 
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreviewUrl(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile]);
+        const nextPreviewUrl = file ? URL.createObjectURL(file) : null;
+        previewUrlRef.current = nextPreviewUrl;
+        setSelectedFile(file);
+        setPreviewUrl(nextPreviewUrl);
+    }
 
     function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         setUploadError(null);
 
         if (!file) {
-            setSelectedFile(null);
+            updateSelectedFile(null);
             return;
         }
 
         if (!ALLOWED_FILE_TYPES.includes(file.type)) {
             setUploadError("Please select a JPEG, PNG or WebP image.");
             event.target.value = "";
-            setSelectedFile(null);
+            updateSelectedFile(null);
             return;
         }
 
         if (file.size > MAX_FILE_SIZE) {
             setUploadError("The photo must not exceed 5 MB.");
             event.target.value = "";
-            setSelectedFile(null);
+            updateSelectedFile(null);
             return;
         }
 
-        setSelectedFile(file);
+        updateSelectedFile(file);
     }
 
     async function handleUpload(event: React.FormEvent<HTMLFormElement>) {
@@ -111,9 +119,8 @@ function TripGalleryPage() {
             );
 
             setPhotos((prev) => [uploadedPhoto, ...prev]);
-            setSelectedFile(null);
+            updateSelectedFile(null);
             setCaption("");
-            setPreviewUrl(null);
             if (fileInputRef.current) fileInputRef.current.value = "";
         } catch {
             setUploadError("Could not upload the photo.");
@@ -224,8 +231,7 @@ function TripGalleryPage() {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setSelectedFile(null);
-                                            setPreviewUrl(null);
+                                            updateSelectedFile(null);
                                             if (fileInputRef.current) fileInputRef.current.value = "";
                                         }}
                                         className={styles.removePreviewButton}
