@@ -1,6 +1,6 @@
 # Our Journey
 
-[![CI](https://github.com/rgarciapedroza/our-journey/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/rgarciapedroza/our-journey/actions/workflows/ci.yml)
+[![CI](https://github.com/rgarciapedroza/our-journey/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rgarciapedroza/our-journey/actions/workflows/ci.yml)
 
 Our Journey is a full-stack travel planning application that allows users to create trips, collaborate with other travellers, organize shared itineraries, and preserve memories through photo galleries.
 
@@ -178,6 +178,8 @@ Use [.env.example](.env.example) as the source of truth for the required local v
 
 ### Backend
 
+The backend test suite covers controllers, services, repositories, authorization rules and storage integrations using Spring Boot Test, JUnit and Mockito.
+
 Run the complete backend test suite through the optional Docker test stage:
 
 ```bash
@@ -234,4 +236,4 @@ our-journey/
 
 ## Project Status
 
-The core application functionality is complete. Current work focuses on documentation, deployment and final quality improvements.
+Our Journey v1.0.0 is complete and maintained as a portfolio project. Future changes will focus on bug fixes and targeted quality improvements.
