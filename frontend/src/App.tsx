@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -31,10 +31,7 @@ function App() {
                     </Route>
                 </Route>
 
-                <Route
-                    path="/"
-                    element={<h1>Our Journey</h1>}
-                />
+                <Route path="/" element={<Navigate to="/trips" replace />} />
             </Routes>
         </BrowserRouter>
     );
