@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 import {
     getTrip,
@@ -49,6 +49,14 @@ function TripDetailPage() {
 
     const [removingUserId, setRemovingUserId] = useState<number | null>(null);
 
+    function handleMemberSearchChange(value: string) {
+        setMemberEmail(value);
+        setSelectedMember(null);
+        setAddMemberError(null);
+        setMemberSearchResults([]);
+        setMemberSearchLoading(value.trim().length >= 2);
+    }
+
     useEffect(() => {
         async function loadTrip() {
             if (!id) {
@@ -63,7 +71,7 @@ function TripDetailPage() {
                 const data = await getTrip(Number(id));
 
                 setTrip(data);
-            } catch (error) {
+            } catch {
                 setError("Could not load this trip.");
             } finally {
                 setLoading(false);
@@ -77,8 +85,6 @@ function TripDetailPage() {
         const query = memberEmail.trim();
 
         if (!showAddMember || !id || query.length < 2 || selectedMember) {
-            setMemberSearchResults([]);
-            setMemberSearchLoading(false);
             return;
         }
 
@@ -122,7 +128,7 @@ function TripDetailPage() {
                 const data = await getTripMembers(Number(id));
 
                 setMembers(data);
-            } catch (error) {
+            } catch {
                 setMembersError("Could not load trip participants.");
             } finally {
                 setMembersLoading(false);
@@ -148,7 +154,7 @@ function TripDetailPage() {
             await deleteTrip(Number(id));
 
             navigate("/trips");
-        } catch (error) {
+        } catch {
             setError("Could not delete the trip.");
         } finally {
             setDeleting(false);
@@ -189,8 +195,9 @@ function TripDetailPage() {
             setMemberEmail("");
             setSelectedMember(null);
             setMemberSearchResults([]);
+            setMemberSearchLoading(false);
             setShowAddMember(false);
-        } catch (error) {
+        } catch {
             setAddMemberError(
                 "Could not add this participant."
             );
@@ -217,7 +224,7 @@ function TripDetailPage() {
                     (member) => member.userId !== userId
                 )
             );
-        } catch (error) {
+        } catch {
             setMembersError(
                 "Could not remove this participant."
             );
@@ -480,11 +487,11 @@ function TripDetailPage() {
                                                 type="search"
                                                 placeholder="Search by name or email"
                                                 value={memberEmail}
-                                                onChange={(event) => {
-                                                    setMemberEmail(event.target.value);
-                                                    setSelectedMember(null);
-                                                    setAddMemberError(null);
-                                                }}
+                                                onChange={(event) =>
+                                                    handleMemberSearchChange(
+                                                        event.target.value
+                                                    )
+                                                }
                                                 className={styles.addMemberInput}
                                                 disabled={addingMember}
                                                 autoComplete="off"
@@ -506,6 +513,7 @@ function TripDetailPage() {
                                                                     setSelectedMember(candidate);
                                                                     setMemberEmail(candidate.email);
                                                                     setMemberSearchResults([]);
+                                                                    setMemberSearchLoading(false);
                                                                 }}
                                                             >
                                                                 <span className={styles.searchResultAvatar}>
@@ -534,6 +542,7 @@ function TripDetailPage() {
                                                     setMemberEmail("");
                                                     setSelectedMember(null);
                                                     setMemberSearchResults([]);
+                                                    setMemberSearchLoading(false);
                                                     setAddMemberError(null);
                                                 }}
                                                 className={styles.addMemberCancel}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import styles from "../styles/Navbar.module.css";
 
 function Navbar() {
@@ -9,11 +9,7 @@ function Navbar() {
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [hasImageError, setHasImageError] = useState(false);
-
-    useEffect(() => {
-        setHasImageError(false);
-    }, [user?.profilePicture]);
+    const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         function handlePointerDown(event: PointerEvent) {
@@ -64,12 +60,15 @@ function Navbar() {
                             aria-controls="profile-menu"
                         >
                             <span className={styles.avatar}>
-                                {user.profilePicture && !hasImageError ? (
+                                {user.profilePicture
+                                && failedImageUrl !== user.profilePicture ? (
                                     <img
                                         src={user.profilePicture}
                                         alt=""
                                         className={styles.avatarImage}
-                                        onError={() => setHasImageError(true)}
+                                        onError={() =>
+                                            setFailedImageUrl(user.profilePicture)
+                                        }
                                     />
                                 ) : (
                                     user.name.charAt(0).toUpperCase()
