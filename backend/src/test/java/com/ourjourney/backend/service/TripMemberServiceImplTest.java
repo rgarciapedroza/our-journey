@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
+import com.ourjourney.backend.dto.TripMemberResponse;
 import com.ourjourney.backend.dto.UserSearchResponse;
 import com.ourjourney.backend.entity.Trip;
 import com.ourjourney.backend.entity.TripMember;
@@ -40,8 +41,77 @@ class TripMemberServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TripAuthorizationService tripAuthorizationService;
+
     @InjectMocks
     private TripMemberServiceImpl tripMemberService;
+
+    @Test
+    void shouldReturnMembersWhenCurrentUserBelongsToTrip() {
+        Long tripId = 10L;
+        String currentUserEmail = "member@example.com";
+        User currentUser = User.builder()
+                .id(1L)
+                .name("Current Member")
+                .email(currentUserEmail)
+                .build();
+        Trip trip = Trip.builder()
+                .id(tripId)
+                .build();
+        TripMember currentMembership = TripMember.builder()
+                .trip(trip)
+                .user(currentUser)
+                .role(TripMemberRole.MEMBER)
+                .build();
+
+        when(tripAuthorizationService.getCurrentMember(
+                tripId,
+                currentUserEmail
+        )).thenReturn(currentMembership);
+        when(tripMemberRepository.findByTripId(tripId))
+                .thenReturn(List.of(currentMembership));
+
+        List<TripMemberResponse> result =
+                tripMemberService.getMembers(
+                        tripId,
+                        currentUserEmail
+                );
+
+        assertEquals(1, result.size());
+        assertEquals(currentUser.getId(), result.getFirst().getUserId());
+        assertEquals(TripMemberRole.MEMBER, result.getFirst().getRole());
+        verify(tripAuthorizationService).getCurrentMember(
+                tripId,
+                currentUserEmail
+        );
+        verify(tripMemberRepository).findByTripId(tripId);
+    }
+
+    @Test
+    void shouldNotLoadMembersWhenCurrentUserDoesNotBelongToTrip() {
+        Long tripId = 10L;
+        String currentUserEmail = "outsider@example.com";
+
+        when(tripAuthorizationService.getCurrentMember(
+                tripId,
+                currentUserEmail
+        )).thenThrow(
+                new IllegalArgumentException(
+                        "You are not a member of this trip"
+                )
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> tripMemberService.getMembers(
+                        tripId,
+                        currentUserEmail
+                )
+        );
+
+        verify(tripMemberRepository, never()).findByTripId(tripId);
+    }
 
     @Test
     void shouldReturnEmptyResultsWhenSearchQueryIsTooShort() {
