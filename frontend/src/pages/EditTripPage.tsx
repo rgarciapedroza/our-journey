@@ -1,12 +1,13 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { getTrip, updateTrip } from "../api/trips";
+import { deleteTripCover, getTrip, updateTrip, uploadTripCover } from "../api/trips";
 import type { TripRequest } from "../types/trip";
 import styles from "../styles/EditTripPage.module.css";
 
 function EditTripPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const coverInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState<TripRequest>({
         name: "",
@@ -14,17 +15,20 @@ function EditTripPage() {
         destination: "",
         startDate: "",
         endDate: "",
-        coverImage: "",
     });
 
+    const [currentCover, setCurrentCover] = useState<string | null>(null);
+    const [coverFile, setCoverFile] = useState<File | null>(null);
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function loadTrip() {
             if (!id) {
-                setError("Trip not found.");
+                setLoadError("Trip not found.");
                 setLoading(false);
                 return;
             }
@@ -38,11 +42,11 @@ function EditTripPage() {
                     destination: trip.destination,
                     startDate: trip.startDate,
                     endDate: trip.endDate,
-                    coverImage: trip.coverImage || "",
                 });
+                setCurrentCover(trip.coverImage);
             } catch (error) {
                 console.error(error);
-                setError("Could not load trip details.");
+                setLoadError("Could not load trip details.");
             } finally {
                 setLoading(false);
             }
@@ -50,6 +54,14 @@ function EditTripPage() {
 
         loadTrip();
     }, [id]);
+
+    useEffect(() => {
+        return () => {
+            if (coverPreview) {
+                URL.revokeObjectURL(coverPreview);
+            }
+        };
+    }, [coverPreview]);
 
     function handleChange(
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -59,6 +71,58 @@ function EditTripPage() {
             ...prev,
             [name]: value,
         }));
+    }
+
+    function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            setError("Choose a JPEG, PNG or WebP image.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError("The cover image must not exceed 5 MB.");
+            event.target.value = "";
+            return;
+        }
+
+        setError(null);
+        setCoverFile(file);
+        setCoverPreview(URL.createObjectURL(file));
+    }
+
+    async function handleRemoveCover() {
+        if (coverFile) {
+            setCoverFile(null);
+            setCoverPreview(null);
+
+            if (coverInputRef.current) {
+                coverInputRef.current.value = "";
+            }
+            return;
+        }
+
+        if (!id || !currentCover) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError(null);
+            await deleteTripCover(Number(id));
+            setCurrentCover(null);
+        } catch (error) {
+            console.error(error);
+            setError("Could not remove the cover image.");
+        } finally {
+            setSaving(false);
+        }
     }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -72,6 +136,11 @@ function EditTripPage() {
                 return;
             }
             await updateTrip(Number(id), form);
+
+            if (coverFile) {
+                await uploadTripCover(Number(id), coverFile);
+            }
+
             navigate(`/trips/${id}`);
         } catch (error) {
             console.error(error);
@@ -92,11 +161,11 @@ function EditTripPage() {
         );
     }
 
-    if (error) {
+    if (loadError) {
         return (
             <main className={styles.main}>
                 <div className={styles.errorContainer}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText}>{loadError}</p>
                     <Link to="/trips" className={styles.backButton}>
                         Back to trips
                     </Link>
@@ -209,27 +278,34 @@ function EditTripPage() {
 
                     <div className={styles.formGroup}>
                         <label htmlFor="coverImage" className={styles.label}>
-                            Cover Image URL
+                            Cover image
                         </label>
                         <input
                             id="coverImage"
-                            name="coverImage"
-                            type="text"
-                            value={form.coverImage}
-                            onChange={handleChange}
-                            placeholder="https://example.com/image.jpg"
-                            className={styles.input}
+                            ref={coverInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleCoverChange}
+                            className={styles.fileInput}
                         />
-                        {form.coverImage && (
+                        <span className={styles.fileHint}>
+                            JPEG, PNG or WebP. Maximum size: 5 MB.
+                        </span>
+                        {(coverPreview || currentCover) && (
                             <div className={styles.imagePreview}>
-                                <img 
-                                    src={form.coverImage} 
+                                <img
+                                    src={coverPreview ?? currentCover ?? ""}
                                     alt="Cover preview"
                                     className={styles.previewImage}
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveCover}
+                                    disabled={saving}
+                                    className={styles.removeImageButton}
+                                >
+                                    Remove cover
+                                </button>
                             </div>
                         )}
                     </div>

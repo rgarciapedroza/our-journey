@@ -30,6 +30,25 @@ export async function updateTrip(
     });
 }
 
+export async function uploadTripCover(
+    tripId: number,
+    file: File
+): Promise<Trip> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return apiFetch<Trip>(`/api/trips/${tripId}/cover`, {
+        method: "PUT",
+        body: formData,
+    });
+}
+
+export async function deleteTripCover(tripId: number): Promise<void> {
+    return apiFetch<void>(`/api/trips/${tripId}/cover`, {
+        method: "DELETE",
+    });
+}
+
 export async function deleteTrip(id: number): Promise<void> {
     return apiFetch<void>(`/api/trips/${id}`, {
         method: "DELETE",

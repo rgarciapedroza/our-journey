@@ -28,9 +28,47 @@
     font-size: 1.1rem;
 }
 
+.createButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #ff8e92 0%, #ff6b6b 100%);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.24);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.createButton:hover {
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255, 107, 107, 0.32);
+    filter: saturate(1.05);
+}
+
+.createButton:focus-visible {
+    outline: 3px solid rgba(255, 142, 146, 0.35);
+    outline-offset: 3px;
+}
+
+.createButton:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 14px rgba(255, 107, 107, 0.24);
+}
+
 .createIcon {
-    width: 1rem;    
-    height: 1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
 }
 
 /* Loading State */
@@ -345,6 +383,11 @@
     
     .title {
         font-size: 1.75rem;
+    }
+
+    .createButton {
+        width: 100%;
+        max-width: 18rem;
     }
     
     .grid {
