@@ -1,77 +1,90 @@
-# React + TypeScript + Vite
+# Our Journey Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React and TypeScript client for [Our Journey](../README.md), a collaborative travel planning application.
 
-Currently, two official plugins are available:
+The frontend provides authenticated navigation, trip and participant management, shared itineraries, photo galleries, account settings, and media-upload workflows backed by the Spring Boot REST API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technology Stack
 
-## React Compiler
+- React 19
+- TypeScript
+- Vite
+- React Router
+- CSS Modules
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Project Structure
 
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+src/
+|-- api/          Typed functions for communicating with the REST API
+|-- assets/       Static images and frontend assets
+|-- components/   Reusable interface and navigation components
+|-- context/      Shared authentication state
+|-- pages/        Route-level application pages
+|-- styles/       CSS Modules and global styles
+|-- types/        Shared TypeScript models and request types
+`-- utils/        Date and presentation utilities
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Local Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js and npm
+- The Our Journey backend running on `http://localhost:8080`, or another configured API URL
 
+### Install dependencies
+
+From the `frontend` directory:
+
+```bash
+npm ci
 ```
+
+### Configure the API URL
+
+Create `frontend/.env.local` when running the frontend directly with Vite:
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+Only variables prefixed with `VITE_` are exposed to browser code. Never place server credentials or Supabase server keys in a frontend environment file.
+
+### Start the development server
+
+```bash
+npm run dev
+```
+
+Vite serves the application on `http://localhost:5173` by default.
+
+## Available Scripts
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the Vite development server with hot module replacement. |
+| `npm run build` | Type-check the application and create a production build. |
+| `npm run lint` | Run ESLint across the frontend source. |
+| `npm run preview` | Preview the production build locally. |
+
+## Docker
+
+The recommended full-stack setup uses Docker Compose from the repository root. The root `.env` value for `VITE_API_URL` is provided to the frontend image during its build.
+
+```bash
+docker compose up --build
+```
+
+With Docker Compose, the frontend is available at `http://localhost:3000`.
+
+## API Integration
+
+Requests are centralized in `src/api`. The shared API client attaches the JWT stored after login, preserves multipart request boundaries for file uploads, and converts unsuccessful HTTP responses into typed `ApiError` instances.
+
+## Further Documentation
+
+- [Project overview and setup](../README.md)
+- [REST API reference](../docs/api.md)
+- [Database model](../docs/database.md)
+- [Environment variable template](../.env.example)
