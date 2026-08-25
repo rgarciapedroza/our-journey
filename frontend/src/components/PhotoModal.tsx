@@ -1,4 +1,4 @@
-import { useEffect, useState, type TouchEvent } from "react";
+import { useCallback, useEffect, useState, type TouchEvent } from "react";
 
 import type { TripPhoto } from "../types/tripPhoto";
 import { formatRelativeDate } from "../utils/date";
@@ -32,6 +32,13 @@ function PhotoModal({
 
     const canDelete = currentUserId === currentPhoto?.uploadedById;
 
+    const navigateToPhoto = useCallback((nextIndex: number) => {
+        setCurrentIndex(nextIndex);
+        setIsZoomed(false);
+        setConfirmingDelete(false);
+        setDeleteError(null);
+    }, []);
+
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
             if (event.key === "Escape") {
@@ -39,16 +46,14 @@ function PhotoModal({
             }
 
             if (event.key === "ArrowLeft" && currentIndex > 0) {
-                setCurrentIndex((index) => index - 1);
-                setIsZoomed(false);
+                navigateToPhoto(currentIndex - 1);
             }
 
             if (
                 event.key === "ArrowRight"
                 && currentIndex < photos.length - 1
             ) {
-                setCurrentIndex((index) => index + 1);
-                setIsZoomed(false);
+                navigateToPhoto(currentIndex + 1);
             }
         }
 
@@ -59,12 +64,7 @@ function PhotoModal({
             document.removeEventListener("keydown", handleKeyDown);
             document.body.style.overflow = "";
         };
-    }, [currentIndex, onClose, photos.length]);
-
-    useEffect(() => {
-        setConfirmingDelete(false);
-        setDeleteError(null);
-    }, [currentIndex]);
+    }, [currentIndex, navigateToPhoto, onClose, photos.length]);
 
     function handleTouchStart(event: TouchEvent) {
         setTouchStart(event.targetTouches[0].clientX);
@@ -83,13 +83,11 @@ function PhotoModal({
         const difference = touchStart - touchEnd;
 
         if (difference > 50 && currentIndex < photos.length - 1) {
-            setCurrentIndex((index) => index + 1);
-            setIsZoomed(false);
+            navigateToPhoto(currentIndex + 1);
         }
 
         if (difference < -50 && currentIndex > 0) {
-            setCurrentIndex((index) => index - 1);
-            setIsZoomed(false);
+            navigateToPhoto(currentIndex - 1);
         }
 
         setTouchStart(null);
@@ -169,8 +167,7 @@ function PhotoModal({
                     className={`${styles.navButton} ${styles.navLeft}`}
                     onClick={(event) => {
                         event.stopPropagation();
-                        setCurrentIndex((index) => index - 1);
-                        setIsZoomed(false);
+                        navigateToPhoto(currentIndex - 1);
                     }}
                     aria-label="Previous photo"
                 >
@@ -186,8 +183,7 @@ function PhotoModal({
                     className={`${styles.navButton} ${styles.navRight}`}
                     onClick={(event) => {
                         event.stopPropagation();
-                        setCurrentIndex((index) => index + 1);
-                        setIsZoomed(false);
+                        navigateToPhoto(currentIndex + 1);
                     }}
                     aria-label="Next photo"
                 >

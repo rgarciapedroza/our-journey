@@ -35,7 +35,7 @@ function RegisterPage() {
             });
 
             navigate("/login");
-        } catch (error) {
+        } catch {
             setError("Could not create account");
         } finally {
             setLoading(false);

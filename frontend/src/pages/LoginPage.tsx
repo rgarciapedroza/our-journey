@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/LoginPage.module.css";
 
@@ -26,7 +26,7 @@ function LoginPage() {
             });
             navigate("/trips");
 
-        } catch (error) {
+        } catch {
             setError("Invalid email or password");
         } finally {
             setLoading(false);
