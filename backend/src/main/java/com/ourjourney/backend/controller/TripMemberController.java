@@ -24,10 +24,15 @@ public class TripMemberController {
 
     @GetMapping
     public ResponseEntity<List<TripMemberResponse>> getMembers(
-            @PathVariable Long tripId) {
+            @PathVariable Long tripId,
+            Authentication authentication
+    ) {
 
         return ResponseEntity.ok(
-                tripMemberService.getMembers(tripId)
+                tripMemberService.getMembers(
+                        tripId,
+                        authentication.getName()
+                )
         );
     }
 

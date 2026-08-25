@@ -8,7 +8,10 @@ import com.ourjourney.backend.dto.UserSearchResponse;
 
 public interface TripMemberService {
 
-        List<TripMemberResponse> getMembers(Long tripId);
+        List<TripMemberResponse> getMembers(
+                Long tripId,
+                String currentUserEmail
+        );
 
         TripMemberResponse addMember(
                 Long tripId,

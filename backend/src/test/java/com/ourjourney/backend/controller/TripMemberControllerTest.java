@@ -17,7 +17,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.ourjourney.backend.config.SecurityConfig;
+import com.ourjourney.backend.dto.TripMemberResponse;
 import com.ourjourney.backend.dto.UserSearchResponse;
+import com.ourjourney.backend.entity.TripMemberRole;
 import com.ourjourney.backend.repository.UserRepository;
 import com.ourjourney.backend.service.JwtService;
 import com.ourjourney.backend.service.TripMemberService;
@@ -37,6 +39,46 @@ class TripMemberControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @Test
+    void shouldRejectMemberListWithoutAuthentication() throws Exception {
+        mockMvc.perform(
+                get("/api/trips/{tripId}/members", 10L)
+        )
+        .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void shouldReturnTripMembersForAuthenticatedUser() throws Exception {
+        TripMemberResponse member = new TripMemberResponse();
+        member.setUserId(2L);
+        member.setName("Rosmary Smith");
+        member.setEmail("rosmary@example.com");
+        member.setProfilePicture("https://example.com/profile.jpg");
+        member.setRole(TripMemberRole.MEMBER);
+
+        when(tripMemberService.getMembers(
+                10L,
+                "member@example.com"
+        )).thenReturn(List.of(member));
+
+        mockMvc.perform(
+                get("/api/trips/{tripId}/members", 10L)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].userId").value(2L))
+        .andExpect(jsonPath("$[0].name").value("Rosmary Smith"))
+        .andExpect(jsonPath("$[0].email").value("rosmary@example.com"))
+        .andExpect(jsonPath("$[0].profilePicture")
+                .value("https://example.com/profile.jpg"))
+        .andExpect(jsonPath("$[0].role").value("MEMBER"));
+
+        verify(tripMemberService).getMembers(
+                10L,
+                "member@example.com"
+        );
+    }
 
     @Test
     void shouldRejectSearchWithoutAuthentication() throws Exception {

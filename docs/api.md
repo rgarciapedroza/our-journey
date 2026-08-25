@@ -166,7 +166,7 @@ Cover uploads use `multipart/form-data`. Accepted formats are JPEG, PNG and WebP
 
 | Method | Endpoint | Request | Success | Permission |
 |---|---|---|---|---|
-| `GET` | `/api/trips/{tripId}/members` | None | `200` with `TripMemberResponse[]` | Authenticated user |
+| `GET` | `/api/trips/{tripId}/members` | None | `200` with `TripMemberResponse[]` | Trip member |
 | `GET` | `/api/trips/{tripId}/members/search?query={value}` | Query parameter `query` | `200` with `UserSearchResponse[]` | Trip owner |
 | `POST` | `/api/trips/{tripId}/members` | `AddTripMemberRequest` | `201` with `TripMemberResponse` | Trip owner |
 | `DELETE` | `/api/trips/{tripId}/members/{userId}` | None | `204` | Trip owner |

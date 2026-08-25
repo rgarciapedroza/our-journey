@@ -16,6 +16,7 @@ import com.ourjourney.backend.entity.User;
 import com.ourjourney.backend.repository.TripMemberRepository;
 import com.ourjourney.backend.repository.TripRepository;
 import com.ourjourney.backend.repository.UserRepository;
+import com.ourjourney.backend.service.TripAuthorizationService;
 import com.ourjourney.backend.service.TripMemberService;
 import lombok.RequiredArgsConstructor;
 
@@ -27,14 +28,19 @@ public class TripMemberServiceImpl
     private final TripMemberRepository tripMemberRepository;
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
+    private final TripAuthorizationService tripAuthorizationService;
 
 
     @Override
-    public List<TripMemberResponse> getMembers( Long tripId) {
+    public List<TripMemberResponse> getMembers(
+            Long tripId,
+            String currentUserEmail
+    ) {
 
-        if (!tripRepository.existsById(tripId)) {
-            throw new IllegalArgumentException("Trip not found");
-        }
+        tripAuthorizationService.getCurrentMember(
+                tripId,
+                currentUserEmail
+        );
 
         return tripMemberRepository.findByTripId(tripId)
                 .stream()
