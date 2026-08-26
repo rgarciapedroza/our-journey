@@ -4,6 +4,12 @@
 
 Our Journey is a full-stack travel planning application that allows users to create trips, collaborate with other travellers, organize shared itineraries, and preserve memories through photo galleries.
 
+## Live Demo
+
+[Open Our Journey](https://our-journey-iota-pink.vercel.app)
+
+> The backend runs on a free hosting tier and may require a short startup period after inactivity.
+
 ## Features
 
 - Secure registration and login using JWT authentication
@@ -53,8 +59,10 @@ Our Journey is a full-stack travel planning application that allows users to cre
 
 ### Infrastructure
 
-- PostgreSQL
+- PostgreSQL hosted on Supabase
 - Supabase Storage
+- Vercel frontend hosting
+- Render backend hosting
 - Docker and Docker Compose
 - GitHub Actions
 
@@ -71,6 +79,10 @@ flowchart LR
 ```
 
 The backend is organized into controllers, services, repositories, entities and DTOs to keep HTTP handling, business logic and persistence responsibilities separated.
+
+### Production Deployment
+
+The production frontend is deployed on Vercel and communicates over HTTPS with the Spring Boot API hosted on Render. PostgreSQL and media storage are managed through Supabase. Secrets and environment-specific URLs are supplied through the hosting platforms and are not embedded in the repository or frontend bundle.
 
 ## Getting Started
 
@@ -205,14 +217,15 @@ mvnw.cmd test
 ```bash
 cd frontend
 npm ci
+npm run lint
 npm run build
 ```
 
-The frontend build performs TypeScript validation before creating the production bundle.
+ESLint validates the frontend source, and the production build performs TypeScript validation before creating the Vite bundle.
 
 ### Continuous Integration
 
-GitHub Actions automatically runs the backend tests and validates the frontend production build for pushes and pull requests targeting `develop` or `main`.
+GitHub Actions automatically runs the backend tests, frontend lint checks and production build for pushes and pull requests targeting `develop` or `main`.
 
 ## Project Structure
 
@@ -236,4 +249,4 @@ our-journey/
 
 ## Project Status
 
-Our Journey v1.0.0 is complete and maintained as a portfolio project. Future changes will focus on bug fixes and targeted quality improvements.
+Our Journey is deployed and maintained as a portfolio project. The core collaborative travel-planning functionality is complete; future changes will focus on bug fixes and targeted quality improvements.
