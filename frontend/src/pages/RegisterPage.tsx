@@ -1,10 +1,12 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
+import { useAuth } from "../context/useAuth";
 import styles from "../styles/RegisterPage.module.css";
 
 function RegisterPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -34,7 +36,16 @@ function RegisterPage() {
                 confirmPassword,
             });
 
-            navigate("/login");
+            try {
+                await login({
+                    email,
+                    password,
+                });
+
+                navigate("/trips", { replace: true });
+            } catch {
+                navigate("/login", { replace: true });
+            }
         } catch {
             setError("Could not create account");
         } finally {

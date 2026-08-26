@@ -11,6 +11,22 @@ import EditTripPage from "./pages/EditTripPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import TripGalleryPage from "./components/TripPhotoGallery";
 import TripItineraryPage from "./pages/TripItineraryPage";
+import { useAuth } from "./context/useAuth";
+
+function HomeRedirect() {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    return (
+        <Navigate
+            to={user ? "/trips" : "/register"}
+            replace
+        />
+    );
+}
 
 function App() {
     return (
@@ -31,7 +47,8 @@ function App() {
                     </Route>
                 </Route>
 
-                <Route path="/" element={<Navigate to="/trips" replace />} />
+                <Route path="/" element={<HomeRedirect />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );
