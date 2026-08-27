@@ -12,12 +12,30 @@ import AccountSettingsPage from "./pages/AccountSettingsPage";
 import TripGalleryPage from "./components/TripPhotoGallery";
 import TripItineraryPage from "./pages/TripItineraryPage";
 import { useAuth } from "./context/useAuth";
+import styles from "./styles/App.module.css";
 
 function HomeRedirect() {
     const { user, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return (
+            <main
+                className={styles.loadingPage}
+                aria-live="polite"
+                aria-busy="true"
+            >
+                <section className={styles.loadingCard}>
+                    <div className={styles.spinner} aria-hidden="true" />
+                    <h1 className={styles.loadingTitle}>
+                        Starting the demo server...
+                    </h1>
+                    <p className={styles.loadingMessage}>
+                        The backend uses free-tier hosting and may take up to a
+                        minute to start after inactivity.
+                    </p>
+                </section>
+            </main>
+        );
     }
 
     return (
