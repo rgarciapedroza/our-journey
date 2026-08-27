@@ -8,7 +8,7 @@ Our Journey is a full-stack travel planning application that allows users to cre
 
 [Open Our Journey](https://our-journey-iota-pink.vercel.app)
 
-> The backend runs on a free hosting tier and may require a short startup period after inactivity.
+> **Note:** The backend is hosted on a free-tier service and may take up to a minute to start after a period of inactivity. Please allow a few seconds for the first request to complete.
 
 ## Features
 
