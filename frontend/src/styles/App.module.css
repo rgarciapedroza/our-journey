@@ -1,0 +1,67 @@
+.loadingPage {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    background:
+        radial-gradient(circle at top, #fff 0%, transparent 48%),
+        linear-gradient(135deg, #fff7f7 0%, #f8fafc 100%);
+    color: #2d3748;
+}
+
+.loadingCard {
+    width: min(100%, 32rem);
+    padding: 2.75rem 2.25rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #ffe0e1;
+    border-radius: 1.5rem;
+    box-shadow: 0 1.5rem 3.5rem rgba(45, 55, 72, 0.1);
+}
+
+.spinner {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1.5rem;
+    border: 0.3rem solid #ffe0e1;
+    border-top-color: #ff6b73;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.loadingTitle {
+    margin: 0;
+    color: #2d3748;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    line-height: 1.2;
+}
+
+.loadingMessage {
+    max-width: 27rem;
+    margin: 1rem auto 0;
+    color: #718096;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation: none;
+    }
+}
+
+@media (max-width: 30rem) {
+    .loadingPage {
+        padding: 1rem;
+    }
+
+    .loadingCard {
+        padding: 2.25rem 1.5rem;
+    }
+}
